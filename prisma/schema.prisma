@@ -1,0 +1,292 @@
+// ==========================================
+// CONFIGURACIÓN
+// ==========================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum TeamRole {
+  MEMBER
+  ADMIN
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  POSTPONED
+}
+
+// ==========================================
+// MODELOS
+// ==========================================
+
+// Usuario
+model User {
+  id                 String    @id @default(uuid()) @db.Uuid
+  email              String    @unique @db.VarChar(255)
+  name               String    @db.VarChar(100)
+  passwordHash       String    @map("password_hash") @db.VarChar(255)
+  avatarUrl          String?   @map("avatar_url") @db.VarChar(500)
+  role               UserRole  @default(USER)
+  emailVerified      Boolean   @default(false) @map("email_verified")
+  verificationToken  String?   @map("verification_token") @db.VarChar(255)
+  resetToken         String?   @map("reset_token") @db.VarChar(255)
+  resetTokenExpiry   DateTime? @map("reset_token_expiry") @db.Timestamp
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamp
+
+  // Relaciones
+  teamMemberships    TeamMember[]
+  createdTeams       Team[]              @relation("TeamCreator")
+  predictions        Prediction[]
+  leaderboardCache   LeaderboardCache?
+  notifications      Notification[]
+  auditLogs          AuditLog[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+// Equipos de usuarios (para competir en grupos)
+model Team {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  inviteCode  String   @unique @map("invite_code") @db.VarChar(6)
+  creatorId   String   @map("creator_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp
+
+  // Relaciones
+  creator              User                   @relation("TeamCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  members              TeamMember[]
+  teamLeaderboardCache TeamLeaderboardCache?
+
+  @@index([inviteCode])
+  @@index([creatorId])
+  @@map("teams")
+}
+
+// Miembros de equipos
+model TeamMember {
+  id       String   @id @default(uuid()) @db.Uuid
+  userId   String   @map("user_id") @db.Uuid
+  teamId   String   @map("team_id") @db.Uuid
+  role     TeamRole @default(MEMBER)
+  joinedAt DateTime @default(now()) @map("joined_at") @db.Timestamp
+
+  // Relaciones
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+  @@index([userId])
+  @@index([teamId])
+  @@map("team_members")
+}
+
+// Selecciones de fútbol
+model FootballTeam {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @db.VarChar(100)
+  fullName    String   @map("full_name") @db.VarChar(200)
+  code        String   @unique @db.VarChar(3)
+  flagUrl     String   @map("flag_url") @db.VarChar(500)
+  groupLetter String?  @map("group_letter") @db.VarChar(1)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp
+
+  // Relaciones
+  homeMatches Match[] @relation("HomeTeam")
+  awayMatches Match[] @relation("AwayTeam")
+
+  @@index([code])
+  @@index([groupLetter])
+  @@map("football_teams")
+}
+
+// Fases del torneo (Grupos, Octavos, Cuartos, etc.)
+model TournamentPhase {
+  id               String   @id @default(uuid()) @db.Uuid
+  name             String   @db.VarChar(50)
+  slug             String   @unique @db.VarChar(50)
+  sortOrder        Int      @map("sort_order")
+  pointsMultiplier Decimal  @map("points_multiplier") @db.Decimal(3, 2)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamp
+
+  // Relaciones
+  matches Match[]
+
+  @@index([sortOrder])
+  @@map("tournament_phases")
+}
+
+// Partidos
+model Match {
+  id           String      @id @default(uuid()) @db.Uuid
+  homeTeamId   String      @map("home_team_id") @db.Uuid
+  awayTeamId   String      @map("away_team_id") @db.Uuid
+  matchDate    DateTime    @map("match_date") @db.Timestamp
+  stadium      String      @db.VarChar(200)
+  city         String      @db.VarChar(100)
+  country      String      @db.VarChar(100)
+  phaseId      String      @map("phase_id") @db.Uuid
+  groupLetter  String?     @map("group_letter") @db.VarChar(1)
+  homeScore    Int?        @map("home_score")
+  awayScore    Int?        @map("away_score")
+  status       MatchStatus @default(SCHEDULED)
+  lockTime     DateTime    @map("lock_time") @db.Timestamp
+  isLocked     Boolean     @default(false) @map("is_locked")
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamp
+
+  // Relaciones
+  homeTeam    FootballTeam   @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam    FootballTeam   @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  phase       TournamentPhase @relation(fields: [phaseId], references: [id])
+  predictions Prediction[]
+
+  @@index([matchDate])
+  @@index([status])
+  @@index([phaseId])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+  @@index([isLocked])
+  @@map("matches")
+}
+
+// Predicciones de usuarios
+model Prediction {
+  id                  String   @id @default(uuid()) @db.Uuid
+  userId              String   @map("user_id") @db.Uuid
+  matchId             String   @map("match_id") @db.Uuid
+  predictedHomeScore  Int      @map("predicted_home_score")
+  predictedAwayScore  Int      @map("predicted_away_score")
+  pointsEarned        Int      @default(0) @map("points_earned")
+  pointsBreakdown     Json?    @map("points_breakdown")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamp
+  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamp
+
+  // Relaciones
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, matchId])
+  @@index([userId])
+  @@index([matchId])
+  @@index([pointsEarned])
+  @@map("predictions")
+}
+
+// Reglas de puntuación
+model ScoringRule {
+  id          String   @id @default(uuid()) @db.Uuid
+  ruleType    String   @map("rule_type") @db.VarChar(50)
+  points      Int
+  description String   @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp
+
+  @@index([ruleType])
+  @@index([isActive])
+  @@map("scoring_rules")
+}
+
+// Cache de tabla de posiciones individual
+model LeaderboardCache {
+  id                  String   @id @default(uuid()) @db.Uuid
+  userId              String   @unique @map("user_id") @db.Uuid
+  totalPoints         Int      @default(0) @map("total_points")
+  totalPredictions    Int      @default(0) @map("total_predictions")
+  correctPredictions  Int      @default(0) @map("correct_predictions")
+  exactScores         Int      @default(0) @map("exact_scores")
+  ranking             Int      @default(0)
+  previousRanking     Int?     @map("previous_ranking")
+  rankingChange       Int      @default(0) @map("ranking_change")
+  accuracyRate        Decimal  @default(0) @map("accuracy_rate") @db.Decimal(5, 2)
+  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamp
+
+  // Relaciones
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([totalPoints])
+  @@index([ranking])
+  @@map("leaderboard_cache")
+}
+
+// Cache de tabla de posiciones por equipo
+model TeamLeaderboardCache {
+  id                      String   @id @default(uuid()) @db.Uuid
+  teamId                  String   @unique @map("team_id") @db.Uuid
+  totalPoints             Int      @default(0) @map("total_points")
+  averagePointsPerMember  Decimal  @default(0) @map("average_points_per_member") @db.Decimal(10, 2)
+  memberCount             Int      @default(0) @map("member_count")
+  ranking                 Int      @default(0)
+  updatedAt               DateTime @updatedAt @map("updated_at") @db.Timestamp
+
+  // Relaciones
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([totalPoints])
+  @@index([ranking])
+  @@map("team_leaderboard_cache")
+}
+
+// Notificaciones
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  type      String   @db.VarChar(50)
+  title     String   @db.VarChar(200)
+  message   String   @db.Text
+  isRead    Boolean  @default(false) @map("is_read")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp
+
+  // Relaciones
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// Logs de auditoría
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  action     String   @db.VarChar(100)
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   String?  @map("entity_id") @db.Uuid
+  oldValues  Json?    @map("old_values")
+  newValues  Json?    @map("new_values")
+  ipAddress  String?  @map("ip_address") @db.VarChar(50)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp
+
+  // Relaciones
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
