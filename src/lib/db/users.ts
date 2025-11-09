@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db'
-import { User, UserRole } from '@prisma/client'
+import { UserRole } from '@prisma/client'
 
 export async function createUser(data: {
   email: string
