@@ -17,7 +17,8 @@
     "db:studio": "prisma studio",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "postinstall": "npx prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
