@@ -57,7 +57,7 @@ export const authOptions: AuthOptions = {
       },
 
       // Lógica de autorización cuando el usuario intenta iniciar sesión
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           return null // Credenciales incompletas
         }
