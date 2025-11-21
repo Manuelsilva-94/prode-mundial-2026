@@ -1,0 +1,83 @@
+### ==========================================
+### VARIABLES
+### ==========================================
+@baseUrl = http://localhost:3000
+@adminId = e3910b0d-6d07-44fc-a295-d4b13c5a765e
+@userId = a8e43629-a86c-47ff-9eb1-1b6c973abf61
+
+# Copiar cookie desde DevTools → Application → Cookies → next-auth.session-token
+@sessionToken = eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..cG75jhJWwIPRXUxO.5HBhZ1CsImFLtgMh6o-6RezHXUPF2Gf5oUpAC7Eim1YEVv20eW5aQeBQwfgb66S6LT4bU5bE5FYxaSiUvAjFN9_jM1NbMeluIAGXZWHxGoR1GSx02qdIbf6mgva6AZcrJPWgntiOMpvhGs_aBzxCjevFgJXlIeAze8xuzBvKCXEhPVeNgI5qeZxNfVNw1ryvXlK9H8LmFSmmmVE7HZLSZ4AZlAuExEB9FpRTFOVhASrsUZoeSZGKBl4DPZRtgrHNMhhEMfwMqfUFMdJOLenyKPvx5--b8j3ze425rZ56QhbH-ZTEUajF8fNH.kCHeeLRjLsgKNsClY6QS7w
+### ==========================================
+### TEST 1: Usuario autenticado - GET /api/users/me
+### Resultado esperado: 200 OK con datos del usuario
+### ==========================================
+GET {{baseUrl}}/api/users/me
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 2: Sin autenticación - GET /api/users/me
+### Resultado esperado: 401 Unauthorized
+### ==========================================
+GET {{baseUrl}}/api/users/me
+# Sin cookie - debe fallar
+
+### ==========================================
+### TEST 3: Usuario autenticado - PATCH /api/users/me
+### Resultado esperado: 200 OK con usuario actualizado
+### ==========================================
+PATCH {{baseUrl}}/api/users/me
+Cookie: next-auth.session-token={{sessionToken}}
+Content-Type: application/json
+
+{
+  "name": "Nombre Actualizado",
+  "avatarUrl": "https://avatars.githubusercontent.com/u/1234"
+}
+
+### ==========================================
+### TEST 4: Ver perfil público de otro usuario
+### Resultado esperado: 200 OK con perfil público
+### ==========================================
+GET {{baseUrl}}/api/users/{{userId}}
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 5: Ver predicciones de otro usuario
+### Resultado esperado: 200 OK con lista de predicciones
+### ==========================================
+GET {{baseUrl}}/api/users/{{userId}}/predictions
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 6: Admin - Listar todos los usuarios
+### Resultado esperado: 200 OK (si eres admin) o 403 (si no eres admin)
+### ==========================================
+GET {{baseUrl}}/api/admin/users
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 7: Usuario no-admin intenta acceder a ruta admin
+### Resultado esperado: 403 Forbidden
+### ==========================================
+# 1. Logueate como usuario normal (juan@test.com)
+# 2. Copiá el nuevo token en @userSessionToken
+# 3. Ejecutá este test
+
+@userSessionToken = PEGAR_TOKEN_USUARIO_NORMAL_AQUI
+
+GET {{baseUrl}}/api/admin/users
+Cookie: next-auth.session-token={{userSessionToken}}
+
+### ==========================================
+### TEST 8: ID inválido
+### Resultado esperado: 400 Bad Request
+### ==========================================
+GET {{baseUrl}}/api/users/invalid-id-123
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 9: Usuario no encontrado
+### Resultado esperado: 404 Not Found
+### ==========================================
+GET {{baseUrl}}/api/users/00000000-0000-0000-0000-000000000000
+Cookie: next-auth.session-token={{sessionToken}}
