@@ -47,6 +47,7 @@ model User {
   role               UserRole  @default(USER)
   emailVerified      Boolean   @default(false) @map("email_verified")
   verificationToken  String?   @map("verification_token") @db.VarChar(255)
+  verificationTokenExpiry DateTime? @map("verification_token_expiry") @db.Timestamp
   resetToken         String?   @map("reset_token") @db.VarChar(255)
   resetTokenExpiry   DateTime? @map("reset_token_expiry") @db.Timestamp
   createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamp

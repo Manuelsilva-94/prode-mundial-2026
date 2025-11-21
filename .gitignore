@@ -48,3 +48,10 @@ next-env.d.ts
 
 # No ignorar los archivos de migración
 !prisma/migrations/
+
+# Tests con tokens reales
+tests/*.local.http
+
+# Testing
+.env.test.local
+coverage/
