@@ -10,51 +10,22 @@ import { prisma } from '../src/lib/db'
 
 beforeAll(async () => {
   console.log('🔧 Configurando base de datos de testing...')
-
-  // Comentamos las migraciones porque ya están aplicadas
-  // Si necesitás aplicarlas, descomentá y ejecutá una vez
-  // console.log('📦 Aplicando migraciones...')
-  // await execAsync('npx prisma migrate deploy')
-
-  // Solo limpiar base de datos
-  await cleanDatabase()
-  console.log('✅ Base de datos lista')
+  console.log('⚠️ WARNING: Tests están DESHABILITADOS para evitar borrar datos')
+  // NO LIMPIAR LA DB
 }, 30000)
 
 afterAll(async () => {
   console.log('🧹 Limpiando después de tests...')
-  await cleanDatabase()
+  // NO LIMPIAR LA DB
   await prisma.$disconnect()
 }, 30000)
 
 beforeEach(async () => {
-  // Limpiar entre cada test para independencia
-  await cleanDatabase()
+  // NO LIMPIAR ENTRE TESTS
 }, 30000)
 
-async function cleanDatabase() {
-  try {
-    // Deshabilitar triggers y constraints temporalmente para limpieza rápida
-    await prisma.$executeRawUnsafe('SET session_replication_role = replica;')
-
-    // Orden de limpieza respetando foreign keys
-    await prisma.auditLog.deleteMany()
-    await prisma.notification.deleteMany()
-    await prisma.prediction.deleteMany()
-    await prisma.leaderboardCache.deleteMany()
-    await prisma.teamLeaderboardCache.deleteMany()
-    await prisma.match.deleteMany()
-    await prisma.teamMember.deleteMany()
-    await prisma.team.deleteMany()
-    await prisma.user.deleteMany()
-    await prisma.footballTeam.deleteMany()
-    await prisma.scoringRule.deleteMany()
-    await prisma.tournamentPhase.deleteMany()
-
-    // Re-habilitar triggers y constraints
-    await prisma.$executeRawUnsafe('SET session_replication_role = DEFAULT;')
-  } catch (error) {
-    console.error('Error limpiando base de datos:', error)
-    throw error
-  }
-}
+// Función comentada para evitar accidentes
+/* async function cleanDatabase() {
+  console.log('⚠️ cleanDatabase está deshabilitada para proteger datos de producción')
+  // NO EJECUTAR
+} */

@@ -1,0 +1,148 @@
+### Variables
+@baseUrl = http://localhost:3000
+
+# Pegar tu session token aquí:
+@sessionToken = eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..0qgnsfx87HnqztTB.67c3gQP586beBu9boNgT52OimUmDRxjm9DQldGIXulvR4s76NS2QnVQJHM_lp02WrRauTffmKzVdULvM3f1BI9OkJYe9PSmmW9jHdAyGbINe83n33UrC1hRVfVFJ09n6Z6FNk1FZT_iWgbp8Ck7yNYGqEPTP9GigvSOHdIAEdko4WgvyJiREp2VGrqKjr4bHADUQVP269ftdkcZ9a3NJfHjipZPnYwIjqde8WQFYMehAnHXZQ0EPstf_Dzol6RQ0mDgyINbkNAP9JYh37u6A4yT4wYCMQM_vGvZbmI2A70GRsalp3FM-70qEKbCf.o-W-SA86YHNucR2ywNE2JA
+
+# Pegar IDs reales de la DB aquí:
+@matchId = PEGAR_MATCH_ID_AQUI
+@teamId = PEGAR_TEAM_ID_AQUI
+@phaseId = PEGAR_PHASE_ID_AQUI
+
+### ==========================================
+### TEST 1: Lista de partidos SIN autenticación
+### Esperado: 200 OK, sin userPrediction
+### ==========================================
+GET {{baseUrl}}/api/matches
+
+### ==========================================
+### TEST 2: Lista de partidos CON autenticación
+### Esperado: 200 OK, con userPrediction si existe
+### ==========================================
+GET {{baseUrl}}/api/matches
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 3: Paginación - Primera página (5 items)
+### Esperado: 200 OK, max 5 partidos
+### ==========================================
+GET {{baseUrl}}/api/matches?page=1&limit=5
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 4: Paginación - Segunda página
+### Esperado: 200 OK, siguiente conjunto
+### ==========================================
+GET {{baseUrl}}/api/matches?page=2&limit=5
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 5: Filtrar por fase
+### Esperado: 200 OK, solo partidos de esa fase
+### ==========================================
+GET {{baseUrl}}/api/matches?phase={{phaseId}}
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 6: Filtrar por equipo
+### Esperado: 200 OK, partidos donde juega ese equipo
+### ==========================================
+GET {{baseUrl}}/api/matches?team={{teamId}}
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 7: Filtrar por status SCHEDULED
+### Esperado: 200 OK, solo programados
+### ==========================================
+GET {{baseUrl}}/api/matches?status=SCHEDULED
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 8: Filtrar por status FINISHED
+### Esperado: 200 OK, solo finalizados
+### ==========================================
+GET {{baseUrl}}/api/matches?status=FINISHED
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 9: Filtrar por rango de fechas
+### Esperado: 200 OK, partidos en ese rango
+### ==========================================
+GET {{baseUrl}}/api/matches?dateFrom=2026-06-01T00:00:00Z&dateTo=2026-06-30T23:59:59Z
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 10: Filtros combinados (fase + status)
+### Esperado: 200 OK, cumple ambos filtros
+### ==========================================
+GET {{baseUrl}}/api/matches?phase={{phaseId}}&status=SCHEDULED
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 11: Detalle partido SIN auth
+### Esperado: 200 OK, sin userPrediction
+### ==========================================
+GET {{baseUrl}}/api/matches/{{matchId}}
+
+### ==========================================
+### TEST 12: Detalle partido CON auth
+### Esperado: 200 OK, con userPrediction si existe
+### ==========================================
+GET {{baseUrl}}/api/matches/{{matchId}}
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 13: ID inválido
+### Esperado: 400 Bad Request
+### ==========================================
+GET {{baseUrl}}/api/matches/invalid-id-123
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 14: ID que no existe
+### Esperado: 404 Not Found
+### ==========================================
+GET {{baseUrl}}/api/matches/00000000-0000-0000-0000-000000000000
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 15: Próximos partidos (default)
+### Esperado: 200 OK, próximos partidos
+### ==========================================
+GET {{baseUrl}}/api/matches/upcoming
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 16: Próximos partidos (límite 5)
+### Esperado: 200 OK, max 5 partidos
+### ==========================================
+GET {{baseUrl}}/api/matches/upcoming?limit=5
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 17: Partidos de hoy
+### Esperado: 200 OK (puede estar vacío)
+### ==========================================
+GET {{baseUrl}}/api/matches/today
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 18: Límite mayor a 50 (inválido)
+### Esperado: 400 Bad Request
+### ==========================================
+GET {{baseUrl}}/api/matches?limit=51
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 19: Página 0 (inválido)
+### Esperado: 400 Bad Request
+### ==========================================
+GET {{baseUrl}}/api/matches?page=0
+Cookie: next-auth.session-token={{sessionToken}}
+
+### ==========================================
+### TEST 20: Status inválido
+### Esperado: 400 Bad Request
+### ==========================================
+GET {{baseUrl}}/api/matches?status=INVALID_STATUS
+Cookie: next-auth.session-token={{sessionToken}}
