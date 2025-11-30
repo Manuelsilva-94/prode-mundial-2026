@@ -268,3 +268,59 @@ export async function validateMatchDeletion(matchId: string) {
 
   return errors
 }
+
+/**
+ * Schema para cargar resultado de un partido
+ */
+export const updateMatchResultSchema = z.object({
+  homeScore: z
+    .number()
+    .int('El marcador debe ser un número entero')
+    .min(0, 'El marcador no puede ser negativo'),
+  awayScore: z
+    .number()
+    .int('El marcador debe ser un número entero')
+    .min(0, 'El marcador no puede ser negativo'),
+})
+
+export type UpdateMatchResultInput = z.infer<typeof updateMatchResultSchema>
+
+/**
+ * Valida que se pueda cargar el resultado de un partido
+ */
+export async function validateMatchResultUpdate(matchId: string) {
+  const errors: string[] = []
+
+  const match = await prisma.match.findUnique({
+    where: { id: matchId },
+    include: {
+      _count: {
+        select: {
+          predictions: true,
+        },
+      },
+    },
+  })
+
+  if (!match) {
+    errors.push('Partido no encontrado')
+    return { isValid: false, errors, match: null }
+  }
+
+  // Solo se puede cargar resultado si el partido está SCHEDULED o LIVE
+  if (match.status === 'FINISHED') {
+    errors.push(
+      'El partido ya está finalizado. Usa PATCH /api/admin/matches/:id para editar el resultado.'
+    )
+  }
+
+  if (match.status === 'POSTPONED') {
+    errors.push('No se puede cargar resultado de un partido pospuesto')
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    match,
+  }
+}

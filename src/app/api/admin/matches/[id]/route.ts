@@ -11,6 +11,7 @@ import {
   isMatchLocked,
 } from '@/lib/validations/match'
 import { Prisma } from '@prisma/client'
+import { calculatePointsForMatch } from '@/lib/scoring/match-processor'
 
 /**
  * GET /api/admin/matches/:id
@@ -18,7 +19,7 @@ import { Prisma } from '@prisma/client'
  * Solo accesible por administradores
  */
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   props: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -205,6 +206,24 @@ export async function PATCH(
         },
       },
     })
+
+    if (
+      (validatedData.homeScore !== undefined ||
+        validatedData.awayScore !== undefined) &&
+      match.status === 'FINISHED'
+    ) {
+      console.log(
+        '🔄 Scores actualizados en partido finalizado, recalculando puntos...'
+      )
+
+      try {
+        await calculatePointsForMatch(params.id)
+        console.log('✅ Puntos recalculados automáticamente')
+      } catch (error) {
+        console.error('❌ Error al recalcular puntos:', error)
+        // No fallar la actualización del partido por esto
+      }
+    }
 
     return NextResponse.json({
       message: 'Partido actualizado exitosamente',
