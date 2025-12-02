@@ -228,6 +228,17 @@ export async function updateLeaderboards() {
       },
     })
 
+    // Obtener rankings anteriores antes de actualizar
+    const existingLeaderboards = await prisma.leaderboardCache.findMany({
+      select: {
+        userId: true,
+        ranking: true,
+      },
+    })
+    const previousRankingsMap = new Map(
+      existingLeaderboards.map((lb) => [lb.userId, lb.ranking])
+    )
+
     // Calcular estadísticas por usuario
     const userStats = users.map((user) => {
       const totalPoints = user.predictions.reduce(
@@ -237,15 +248,19 @@ export async function updateLeaderboards() {
 
       const totalPredictions = user.predictions.length
 
-      const correctPredictions = user.predictions.filter((pred) => {
+      // correctPredictions: todas las predicciones que obtuvieron puntos (cualquier tipo de acierto)
+      const correctPredictions = user.predictions.filter(
+        (pred) => (pred.pointsEarned || 0) > 0
+      ).length
+
+      // exactScores: solo predicciones con resultado exacto (12 puntos por defecto)
+      const exactScores = user.predictions.filter((pred) => {
         if (!pred.match.homeScore || !pred.match.awayScore) return false
         return (
           pred.predictedHomeScore === pred.match.homeScore &&
           pred.predictedAwayScore === pred.match.awayScore
         )
       }).length
-
-      const exactScores = correctPredictions
 
       const accuracyRate =
         totalPredictions > 0 ? (correctPredictions / totalPredictions) * 100 : 0
@@ -260,19 +275,20 @@ export async function updateLeaderboards() {
       }
     })
 
-    // Ordenar por puntos (descendente)
-    const sortedUsers = userStats.sort((a, b) => b.totalPoints - a.totalPoints)
+    // Ordenar por puntos (descendente), luego por accuracy rate como desempate
+    const sortedUsers = userStats.sort((a, b) => {
+      if (b.totalPoints !== a.totalPoints) {
+        return b.totalPoints - a.totalPoints
+      }
+      return b.accuracyRate - a.accuracyRate
+    })
 
-    // Asignar rankings
-    const rankedUsers = sortedUsers.map((userStat, index) => ({
-      ...userStat,
-      ranking: index + 1,
-      previousRanking: userStat.totalPredictions > 0 ? index + 1 : null,
-      rankingChange: 0,
-    }))
+    // Actualizar leaderboard cache para cada usuario con rankings correctos
+    for (const [index, userStat] of sortedUsers.entries()) {
+      const newRanking = index + 1
+      const previousRanking = previousRankingsMap.get(userStat.userId) || null
+      const rankingChange = previousRanking ? previousRanking - newRanking : 0 // positivo = subió, negativo = bajó, 0 = sin cambio o nuevo
 
-    // Actualizar leaderboard cache para cada usuario
-    for (const userStat of rankedUsers) {
       await prisma.leaderboardCache.upsert({
         where: {
           userId: userStat.userId,
@@ -282,9 +298,9 @@ export async function updateLeaderboards() {
           totalPredictions: userStat.totalPredictions,
           correctPredictions: userStat.correctPredictions,
           exactScores: userStat.exactScores,
-          ranking: userStat.ranking,
-          previousRanking: userStat.previousRanking,
-          rankingChange: userStat.rankingChange,
+          ranking: newRanking,
+          previousRanking: previousRanking,
+          rankingChange: rankingChange,
           accuracyRate: userStat.accuracyRate,
           updatedAt: new Date(),
         },
@@ -294,16 +310,16 @@ export async function updateLeaderboards() {
           totalPredictions: userStat.totalPredictions,
           correctPredictions: userStat.correctPredictions,
           exactScores: userStat.exactScores,
-          ranking: userStat.ranking,
-          previousRanking: userStat.previousRanking,
-          rankingChange: userStat.rankingChange,
+          ranking: newRanking,
+          previousRanking: null,
+          rankingChange: 0,
           accuracyRate: userStat.accuracyRate,
         },
       })
     }
 
     console.log(
-      `✅ Leaderboard actualizado para ${rankedUsers.length} usuarios`
+      `✅ Leaderboard actualizado para ${sortedUsers.length} usuarios`
     )
   } catch (error) {
     console.error('❌ Error actualizando leaderboards:', error)

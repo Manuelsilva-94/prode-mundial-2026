@@ -218,6 +218,100 @@ describe('calculatePoints - Sistema de Puntuación Oficial', () => {
       expect(result.multiplier).toBe(1.0)
       expect(result.total).toBe(12)
     })
+
+    it('Octavos: multiplicador 1.0', () => {
+      const result = calculatePoints(2, 1, 2, 1, 'octavos')
+      expect(result.multiplier).toBe(1.0)
+      expect(result.total).toBe(12)
+    })
+
+    it('Semifinales: multiplicador 1.0', () => {
+      const result = calculatePoints(1, 0, 2, 0, 'semifinales')
+      expect(result.multiplier).toBe(1.0)
+      expect(result.total).toBe(7)
+    })
+  })
+
+  // ============================================
+  // CASO 9: CASOS ADICIONALES DE EMPATE
+  // ============================================
+  describe('Casos Adicionales de Empate', () => {
+    it('predicción 0-0, resultado 1-1 → 5 puntos (acertó empate)', () => {
+      const result = calculatePoints(0, 0, 1, 1, 'grupos')
+      expect(result.total).toBe(5)
+      expect(result.breakdown.correctWinnerOrDraw).toBe(5)
+    })
+
+    it('predicción 2-2, resultado 4-4 → 5 puntos (solo empate)', () => {
+      const result = calculatePoints(2, 2, 4, 4, 'grupos')
+      expect(result.total).toBe(5)
+      expect(result.breakdown.correctWinnerOrDraw).toBe(5)
+    })
+
+    it('predicción 1-1, resultado 0-0 → 2 puntos (solo goles visitante en empate real)', () => {
+      const result = calculatePoints(1, 1, 0, 0, 'grupos')
+      expect(result.total).toBe(2)
+      expect(result.breakdown.correctOneTeamScore).toBe(2)
+    })
+
+    it('predicción 3-3, resultado 0-0 → 5 puntos (acertó empate pero no marcador)', () => {
+      const result = calculatePoints(3, 3, 0, 0, 'grupos')
+      // Espera: acertó empate (0-0 es empate)
+      expect(result.total).toBe(5)
+      expect(result.breakdown.correctWinnerOrDraw).toBe(5)
+    })
+  })
+
+  // ============================================
+  // CASO 10: CASOS ADICIONALES DE GANADOR VISITANTE
+  // ============================================
+  describe('Casos Adicionales - Ganador Visitante', () => {
+    it('predicción 0-1, resultado 0-1 → 12 puntos (exacto visitante)', () => {
+      const result = calculatePoints(0, 1, 0, 1, 'grupos')
+      expect(result.total).toBe(12)
+      expect(result.breakdown.exactScore).toBe(12)
+    })
+
+    it('predicción 1-2, resultado 0-2 → 7 puntos (ganador visitante + goles visitante)', () => {
+      const result = calculatePoints(1, 2, 0, 2, 'grupos')
+      expect(result.total).toBe(7)
+      expect(result.breakdown.correctWinnerPlusOneTeamScore).toBe(7)
+    })
+
+    it('predicción 2-3, resultado 1-4 → 5 puntos (solo ganador visitante)', () => {
+      const result = calculatePoints(2, 3, 1, 4, 'grupos')
+      expect(result.total).toBe(5)
+      expect(result.breakdown.correctWinnerOrDraw).toBe(5)
+    })
+
+    it('predicción 0-3, resultado 2-3 → 7 puntos (ganador visitante + goles visitante)', () => {
+      const result = calculatePoints(0, 3, 2, 3, 'grupos')
+      expect(result.total).toBe(7)
+      expect(result.breakdown.correctWinnerPlusOneTeamScore).toBe(7)
+    })
+  })
+
+  // ============================================
+  // CASO 11: CASOS ADICIONALES DE GOLES PARCIALES
+  // ============================================
+  describe('Casos Adicionales - Goles Parciales', () => {
+    it('predicción 4-0, resultado 4-3 → 7 puntos (ganador + goles local)', () => {
+      const result = calculatePoints(4, 0, 4, 3, 'grupos')
+      expect(result.total).toBe(7)
+      expect(result.breakdown.correctWinnerPlusOneTeamScore).toBe(7)
+    })
+
+    it('predicción 1-3, resultado 0-3 → 7 puntos (ganador visitante + goles visitante)', () => {
+      const result = calculatePoints(1, 3, 0, 3, 'grupos')
+      expect(result.total).toBe(7)
+      expect(result.breakdown.correctWinnerPlusOneTeamScore).toBe(7)
+    })
+
+    it('predicción 2-4, resultado 1-4 → 7 puntos (ganador visitante + goles visitante)', () => {
+      const result = calculatePoints(2, 4, 1, 4, 'grupos')
+      expect(result.total).toBe(7)
+      expect(result.breakdown.correctWinnerPlusOneTeamScore).toBe(7)
+    })
   })
 })
 
