@@ -1,0 +1,602 @@
+{
+  "info": {
+    "_postman_id": "teams-crud-collection-2026",
+    "name": "Teams - CRUD Completo",
+    "description": "Colección completa para testear el CRUD de equipos corporativos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Crear Equipo",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const response = pm.response.json();",
+              "    if (response.data) {",
+              "        pm.collectionVariables.set('team_id', response.data.id);",
+              "        pm.collectionVariables.set('invite_code', response.data.inviteCode);",
+              "        console.log('✅ Team ID guardado:', response.data.id);",
+              "        console.log('✅ Invite Code guardado:', response.data.inviteCode);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Equipo de Prueba\",\n  \"description\": \"Este es un equipo de prueba para testing\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/teams",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams"]
+        },
+        "description": "Crea un nuevo equipo corporativo. El usuario debe estar autenticado y no pertenecer a otro equipo."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Crear Equipo - Sin Descripción",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Equipo Sin Descripción\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/teams",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams"]
+        },
+        "description": "Crea un equipo sin descripción (opcional)"
+      },
+      "response": []
+    },
+    {
+      "name": "3. ERROR - Crear Equipo Duplicado",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Equipo de Prueba\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/teams",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams"]
+        },
+        "description": "Intenta crear un equipo con nombre duplicado. Debe fallar con error 409."
+      },
+      "response": []
+    },
+    {
+      "name": "4. ERROR - Crear Equipo Cuando Ya Estás en Uno",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Segundo Equipo\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/teams",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams"]
+        },
+        "description": "Intenta crear un segundo equipo cuando ya estás en uno. Debe fallar con error 400."
+      },
+      "response": []
+    },
+    {
+      "name": "5. Listar Todos los Equipos",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/teams?page=1&limit=10",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Lista todos los equipos con paginación. No requiere autenticación."
+      },
+      "response": []
+    },
+    {
+      "name": "6. Ver Mi Equipo",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/teams/me",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "me"]
+        },
+        "description": "Obtiene el equipo del usuario autenticado con todos sus miembros y estadísticas."
+      },
+      "response": []
+    },
+    {
+      "name": "7. Ver Detalle de Equipo",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/teams/{{team_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "{{team_id}}"]
+        },
+        "description": "Obtiene el detalle completo de un equipo incluyendo miembros con estadísticas."
+      },
+      "response": []
+    },
+    {
+      "name": "8. Actualizar Equipo",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Equipo Actualizado\",\n  \"description\": \"Descripción actualizada\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/teams/{{team_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "{{team_id}}"]
+        },
+        "description": "Actualiza el nombre y/o descripción del equipo. Solo el creador puede hacerlo."
+      },
+      "response": []
+    },
+    {
+      "name": "9. ERROR - Actualizar Equipo Sin Ser Creador",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Intentar Cambiar\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/teams/{{team_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "{{team_id}}"]
+        },
+        "description": "Intenta actualizar un equipo sin ser el creador. Debe fallar con error 403."
+      },
+      "response": []
+    },
+    {
+      "name": "10. Salir del Equipo",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/teams/{{team_id}}/leave",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "{{team_id}}", "leave"]
+        },
+        "description": "Sale del equipo. Si eres el creador y hay otros miembros, transfiere el ownership."
+      },
+      "response": []
+    },
+    {
+      "name": "11. ERROR - Salir de Equipo Sin Ser Miembro",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/teams/{{team_id}}/leave",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "{{team_id}}", "leave"]
+        },
+        "description": "Intenta salir de un equipo del que no eres miembro. Debe fallar con error 400."
+      },
+      "response": []
+    },
+    {
+      "name": "12. Eliminar Equipo",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/teams/{{team_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "{{team_id}}"]
+        },
+        "description": "Elimina un equipo. Solo el creador puede hacerlo."
+      },
+      "response": []
+    },
+    {
+      "name": "13. ERROR - Eliminar Equipo Sin Ser Creador",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/teams/{{team_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "{{team_id}}"]
+        },
+        "description": "Intenta eliminar un equipo sin ser el creador. Debe fallar con error 403."
+      },
+      "response": []
+    },
+    {
+      "name": "14. Listar Equipos - Con Paginación",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/teams?page=2&limit=5",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams"],
+          "query": [
+            {
+              "key": "page",
+              "value": "2"
+            },
+            {
+              "key": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "description": "Lista equipos con paginación personalizada."
+      },
+      "response": []
+    },
+    {
+      "name": "15. Ver Mi Equipo - Sin Equipo",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/teams/me",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "me"]
+        },
+        "description": "Obtiene el equipo del usuario cuando no está en ninguno. Debe retornar null."
+      },
+      "response": []
+    },
+    {
+      "name": "16. Buscar Equipo por Código",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/teams/search?code={{invite_code}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "search"],
+          "query": [
+            {
+              "key": "code",
+              "value": "{{invite_code}}",
+              "description": "Código de invitación de 6 caracteres"
+            }
+          ]
+        },
+        "description": "Busca un equipo por su código de invitación. Público, no requiere autenticación. Case-insensitive."
+      },
+      "response": []
+    },
+    {
+      "name": "17. ERROR - Buscar Equipo con Código Inválido",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/teams/search?code=INVALID",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "search"],
+          "query": [
+            {
+              "key": "code",
+              "value": "INVALID"
+            }
+          ]
+        },
+        "description": "Intenta buscar un equipo con un código inválido. Debe fallar con error 404."
+      },
+      "response": []
+    },
+    {
+      "name": "18. ERROR - Buscar Equipo sin Código",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/teams/search",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "search"]
+        },
+        "description": "Intenta buscar un equipo sin proporcionar código. Debe fallar con error 400."
+      },
+      "response": []
+    },
+    {
+      "name": "19. Unirse a Equipo",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    if (response.team) {",
+              "        pm.collectionVariables.set('team_id', response.team.id);",
+              "        pm.collectionVariables.set('invite_code', response.team.inviteCode);",
+              "        console.log('✅ Team ID guardado:', response.team.id);",
+              "        console.log('✅ Invite Code guardado:', response.team.inviteCode);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"teamId\": \"{{team_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/teams/join",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "join"]
+        },
+        "description": "Une al usuario autenticado a un equipo usando el teamId. El usuario no debe estar en otro equipo."
+      },
+      "response": []
+    },
+    {
+      "name": "20. ERROR - Unirse Cuando Ya Estás en un Equipo",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"teamId\": \"{{team_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/teams/join",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "join"]
+        },
+        "description": "Intenta unirse a un equipo cuando ya estás en otro. Debe fallar con error 400."
+      },
+      "response": []
+    },
+    {
+      "name": "21. ERROR - Unirse al Mismo Equipo Dos Veces",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"teamId\": \"{{team_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/teams/join",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "join"]
+        },
+        "description": "Intenta unirse al mismo equipo dos veces. Debe fallar con error 400."
+      },
+      "response": []
+    },
+    {
+      "name": "22. ERROR - Unirse a Equipo Inexistente",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{authSession}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"teamId\": \"00000000-0000-0000-0000-000000000000\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/teams/join",
+          "host": ["{{base_url}}"],
+          "path": ["api", "teams", "join"]
+        },
+        "description": "Intenta unirse a un equipo que no existe. Debe fallar con error 404."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authSession",
+      "value": "next-auth.session-token=...",
+      "type": "string",
+      "description": "Cookie de sesión de NextAuth. Obtenerla después de hacer login."
+    },
+    {
+      "key": "team_id",
+      "value": "",
+      "type": "string",
+      "description": "ID del equipo. Se guarda automáticamente al crear un equipo."
+    },
+    {
+      "key": "invite_code",
+      "value": "",
+      "type": "string",
+      "description": "Código de invitación del equipo. Se guarda automáticamente al crear un equipo."
+    }
+  ]
+}
