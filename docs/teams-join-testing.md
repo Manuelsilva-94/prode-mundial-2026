@@ -3,9 +3,11 @@
 ## Nuevos Endpoints Implementados
 
 ### 1. GET /api/teams/search?code=XXX
+
 Busca un equipo por su código de invitación (público, no requiere autenticación).
 
 ### 2. POST /api/teams/join
+
 Permite a un usuario unirse a un equipo usando el teamId.
 
 ---
@@ -17,11 +19,13 @@ Permite a un usuario unirse a un equipo usando el teamId.
 Para testear completamente el sistema de unión, necesitas dos usuarios:
 
 **Usuario A (Creador):**
+
 1. Autentícate con el Usuario A
 2. Crea un equipo usando `1. Crear Equipo`
 3. Guarda el `invite_code` que se generó automáticamente
 
 **Usuario B (Se va a unir):**
+
 1. Autentícate con el Usuario B (en otra sesión de Postman o cambia la cookie)
 2. Verifica que no esté en ningún equipo: `6. Ver Mi Equipo` → debe retornar `null`
 
@@ -34,6 +38,7 @@ Para testear completamente el sistema de unión, necesitas dos usuarios:
 - El código es **case-insensitive** (puedes usar `abc123` o `ABC123`)
 
 **Resultado esperado:**
+
 - Status: `200 OK`
 - Retorna información del equipo (sin el código por seguridad)
 - Muestra: nombre, descripción, creador, cantidad de miembros
@@ -41,10 +46,12 @@ Para testear completamente el sistema de unión, necesitas dos usuarios:
 ### Paso 3: Probar Casos de Error en Búsqueda
 
 **Request:** `17. ERROR - Buscar Equipo con Código Inválido`
+
 - Usa un código que no existe: `?code=INVALID`
 - Resultado esperado: `404 Not Found`
 
 **Request:** `18. ERROR - Buscar Equipo sin Código`
+
 - No incluyas el parámetro `code`
 - Resultado esperado: `400 Bad Request`
 
@@ -53,6 +60,7 @@ Para testear completamente el sistema de unión, necesitas dos usuarios:
 **Request:** `19. Unirse a Equipo`
 
 **Body:**
+
 ```json
 {
   "teamId": "{{team_id}}"
@@ -60,10 +68,12 @@ Para testear completamente el sistema de unión, necesitas dos usuarios:
 ```
 
 **Nota:** El `team_id` se obtiene de:
+
 - El response de "16. Buscar Equipo por Código" (campo `id`)
 - O de la variable `team_id` si ya la tienes guardada
 
 **Resultado esperado:**
+
 - Status: `200 OK`
 - Retorna información completa del equipo
 - Retorna información de tu membresía
@@ -73,6 +83,7 @@ Para testear completamente el sistema de unión, necesitas dos usuarios:
 ### Paso 5: Verificar Unión
 
 **Request:** `6. Ver Mi Equipo`
+
 - Debe mostrar el equipo al que te uniste
 - Debe mostrar tu rol como `MEMBER`
 - Debe mostrar todos los miembros incluyendo al creador
@@ -80,14 +91,17 @@ Para testear completamente el sistema de unión, necesitas dos usuarios:
 ### Paso 6: Probar Casos de Error en Unión
 
 **Request:** `20. ERROR - Unirse Cuando Ya Estás en un Equipo`
+
 - Si ya estás en un equipo e intentas unirte a otro
 - Resultado esperado: `400 Bad Request` con mensaje "Ya estás en un equipo"
 
 **Request:** `21. ERROR - Unirse al Mismo Equipo Dos Veces`
+
 - Intenta unirte al mismo equipo otra vez
 - Resultado esperado: `400 Bad Request` con mensaje "Ya eres miembro de este equipo"
 
 **Request:** `22. ERROR - Unirse a Equipo Inexistente`
+
 - Usa un UUID inválido o de un equipo que no existe
 - Resultado esperado: `404 Not Found`
 
@@ -218,18 +232,20 @@ Si un equipo alcanza este límite, no se pueden agregar más miembros hasta que 
 ## Troubleshooting
 
 ### No puedo buscar equipo
+
 - ✅ Verifica que el código tenga exactamente 6 caracteres
 - ✅ El código puede estar en mayúsculas o minúsculas
 - ✅ Asegúrate de que el equipo existe (verifica en "Listar Todos los Equipos")
 
 ### No puedo unirme al equipo
+
 - ✅ Verifica que no estés ya en otro equipo
 - ✅ Verifica que no seas ya miembro de este equipo
 - ✅ Verifica que el teamId sea correcto (UUID válido)
 - ✅ Verifica que el equipo no esté lleno (límite: 50 miembros)
 
 ### Variables no se guardan
+
 - ✅ El request `19. Unirse a Equipo` guarda automáticamente `team_id` e `invite_code`
 - ✅ Verifica la consola de Postman para ver mensajes de guardado
 - ✅ Puedes copiar manualmente el `team_id` de la respuesta
-

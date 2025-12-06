@@ -210,3 +210,103 @@ export async function getOrCreateGruposPhase() {
 
   return cachedGruposPhase
 }
+
+/**
+ * Caracteres permitidos para códigos de invitación (sin caracteres confusos)
+ */
+const INVITE_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
+/**
+ * Genera un código de invitación único para testing
+ */
+export function generateInviteCode(): string {
+  let code = ''
+  for (let i = 0; i < 6; i++) {
+    const randomIndex = Math.floor(Math.random() * INVITE_CODE_CHARS.length)
+    code += INVITE_CODE_CHARS[randomIndex]
+  }
+  return code
+}
+
+/**
+ * Crea un equipo corporativo de prueba
+ */
+export async function createTestTeam(
+  overrides: {
+    name?: string
+    description?: string
+    inviteCode?: string
+    creatorId?: string
+  } = {}
+) {
+  // Crear usuario creador si no se proporciona
+  const creator = overrides.creatorId
+    ? await prisma.user.findUnique({
+        where: { id: overrides.creatorId },
+      })
+    : await createTestUser()
+
+  if (!creator) {
+    throw new Error('Error creando usuario creador para equipo')
+  }
+
+  // Generar código único si no se proporciona
+  let inviteCode = overrides.inviteCode
+  if (!inviteCode) {
+    let attempts = 0
+    const maxAttempts = 10
+    while (attempts < maxAttempts) {
+      inviteCode = generateInviteCode()
+      const exists = await prisma.team.findUnique({
+        where: { inviteCode },
+      })
+      if (!exists) break
+      attempts++
+    }
+    if (attempts >= maxAttempts) {
+      throw new Error('No se pudo generar código único para testing')
+    }
+  }
+
+  // Crear equipo y agregar creador como miembro
+  const team = await prisma.$transaction(async (tx) => {
+    const newTeam = await tx.team.create({
+      data: {
+        name: overrides.name || `Test Team ${Date.now()}`,
+        description: overrides.description || null,
+        inviteCode: inviteCode!,
+        creatorId: creator.id,
+      },
+    })
+
+    // Agregar creador como miembro ADMIN
+    await tx.teamMember.create({
+      data: {
+        userId: creator.id,
+        teamId: newTeam.id,
+        role: 'ADMIN',
+      },
+    })
+
+    return newTeam
+  })
+
+  return team
+}
+
+/**
+ * Agrega un usuario como miembro de un equipo
+ */
+export async function addTeamMember(
+  teamId: string,
+  userId: string,
+  role: 'MEMBER' | 'ADMIN' = 'MEMBER'
+) {
+  return prisma.teamMember.create({
+    data: {
+      userId,
+      teamId,
+      role,
+    },
+  })
+}

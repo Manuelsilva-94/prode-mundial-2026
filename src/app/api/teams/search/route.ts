@@ -17,7 +17,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         {
           error: 'Código requerido',
-          details: ['Debes proporcionar un código de invitación en el parámetro "code"'],
+          details: [
+            'Debes proporcionar un código de invitación en el parámetro "code"',
+          ],
         },
         { status: 400 }
       )
@@ -57,4 +59,3 @@ export async function GET(req: NextRequest) {
     return handleApiError(error)
   }
 }
-
