@@ -52,6 +52,7 @@ export function generateUniqueEmail() {
 
 /**
  * Crea un equipo de fútbol de prueba
+ * Nota: El campo code tiene un límite de 3 caracteres (VarChar(3))
  */
 export async function createTestFootballTeam(
   overrides: {
@@ -60,15 +61,44 @@ export async function createTestFootballTeam(
     groupLetter?: string
   } = {}
 ) {
-  const code =
-    overrides.code ||
-    `T${Math.random().toString(36).substring(2, 5).toUpperCase()}`
+  // Generar código único si no se proporciona (máximo 3 caracteres)
+  let code = overrides.code
+  if (!code) {
+    // Generar código de 3 caracteres alfanuméricos
+    // Usar caracteres seguros: A-Z, 2-9 (sin 0, O, 1, I, l para evitar confusión)
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+    let attempts = 0
+    const maxAttempts = 20
+
+    while (attempts < maxAttempts) {
+      // Generar código de 3 caracteres aleatorios
+      code = ''
+      for (let i = 0; i < 3; i++) {
+        const randomIndex = Math.floor(Math.random() * chars.length)
+        code += chars[randomIndex]
+      }
+
+      // Verificar si el código ya existe
+      const existing = await prisma.footballTeam.findUnique({
+        where: { code },
+      })
+      if (!existing) break
+      attempts++
+    }
+
+    if (attempts >= maxAttempts) {
+      // Si no se pudo generar único después de muchos intentos,
+      // usar timestamp como fallback (últimos 3 caracteres)
+      const timestamp = Date.now().toString(36).toUpperCase().slice(-3)
+      code = timestamp.padStart(3, 'A')
+    }
+  }
 
   return prisma.footballTeam.create({
     data: {
       name: overrides.name || `Test Team ${code}`,
       fullName: overrides.name || `Test Team ${code} Full Name`,
-      code,
+      code: code!,
       flagUrl: 'https://flagcdn.com/w160/xx.png',
       groupLetter: overrides.groupLetter || null,
     },
@@ -85,7 +115,23 @@ export async function createTestPhase(
     pointsMultiplier?: number
   } = {}
 ) {
-  const slug = overrides.slug || `test-phase-${Date.now()}`
+  let slug = overrides.slug
+
+  // Si no se proporciona slug, generar uno único
+  if (!slug) {
+    // Generar slug único basado en timestamp + random
+    slug = `test-phase-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
+  } else {
+    // Si se proporciona slug, verificar si ya existe
+    const existing = await prisma.tournamentPhase.findUnique({
+      where: { slug },
+    })
+
+    if (existing) {
+      // Si ya existe, generar uno único con sufijo
+      slug = `${slug}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`
+    }
+  }
 
   return prisma.tournamentPhase.create({
     data: {
@@ -120,29 +166,29 @@ export async function createTestMatch(
     isLocked?: boolean
   } = {}
 ) {
-  // Crear equipos si no se proporcionan
+  // Crear equipos si no se proporcionan (sin códigos fijos para evitar colisiones)
   const homeTeam = overrides.homeTeamId
     ? await prisma.footballTeam.findUnique({
         where: { id: overrides.homeTeamId },
       })
-    : await createTestFootballTeam({ name: 'Home Team', code: 'HOM' })
+    : await createTestFootballTeam({ name: 'Home Team' })
 
   const awayTeam = overrides.awayTeamId
     ? await prisma.footballTeam.findUnique({
         where: { id: overrides.awayTeamId },
       })
-    : await createTestFootballTeam({ name: 'Away Team', code: 'AWY' })
+    : await createTestFootballTeam({ name: 'Away Team' })
 
   if (!homeTeam || !awayTeam) {
     throw new Error('Error creando equipos de prueba')
   }
 
-  // Crear fase si no se proporciona
+  // Crear fase si no se proporciona (sin slug fijo para evitar colisiones)
   const phase = overrides.phaseId
     ? await prisma.tournamentPhase.findUnique({
         where: { id: overrides.phaseId },
       })
-    : await createTestPhase({ slug: 'grupos' })
+    : await createTestPhase() // Generará slug único automáticamente
 
   if (!phase) {
     throw new Error('Error creando fase de prueba')

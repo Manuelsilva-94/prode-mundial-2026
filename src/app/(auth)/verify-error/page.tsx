@@ -5,7 +5,7 @@ import VerifyErrorContent from '@/components/auth/VerifyErrorContent'
 
 // Componente de fallback simple mientras se carga el contenido del cliente
 const LoadingFallback = () => (
-  <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-red-600 to-orange-500 px-4">
+  <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-600 to-orange-500 px-4">
     <div className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-2xl">
       <p className="text-xl font-semibold text-gray-700">
         Cargando información de error...

@@ -1,0 +1,127 @@
+{
+  "info": {
+    "name": "Cron Lock Matches",
+    "description": "Colección para testear el cron job de bloqueo automático de partidos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "cron_secret",
+      "value": "tu-cron-secret-aqui",
+      "type": "string",
+      "description": "Reemplaza con tu CRON_SECRET de .env.local"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. POST - Ejecutar Cron Job",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{cron_secret}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/cron/lock-matches",
+          "host": ["{{base_url}}"],
+          "path": ["api", "cron", "lock-matches"]
+        },
+        "description": "Ejecuta el cron job para bloquear partidos automáticamente.\n\n**Respuesta esperada:**\n- 200 OK si el secret es correcto\n- 401 Unauthorized si el secret es incorrecto\n- 500 si CRON_SECRET no está configurado"
+      },
+      "response": []
+    },
+    {
+      "name": "2. GET - Ver Estado (sin auth)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/cron/lock-matches",
+          "host": ["{{base_url}}"],
+          "path": ["api", "cron", "lock-matches"]
+        },
+        "description": "Muestra información básica del endpoint sin necesidad de autenticación.\n\n**Respuesta esperada:**\n- Info básica: endpoint, method, schedule"
+      },
+      "response": []
+    },
+    {
+      "name": "3. GET - Ver Estadísticas (con auth)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{cron_secret}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/cron/lock-matches",
+          "host": ["{{base_url}}"],
+          "path": ["api", "cron", "lock-matches"]
+        },
+        "description": "Muestra estadísticas detalladas del cron job.\n\n**Requiere:** Authorization header con CRON_SECRET\n\n**Respuesta esperada:**\n- Estadísticas: pendingToLock, totalScheduled, totalLocked"
+      },
+      "response": []
+    },
+    {
+      "name": "4. POST - Sin Secret (debe fallar)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/cron/lock-matches",
+          "host": ["{{base_url}}"],
+          "path": ["api", "cron", "lock-matches"]
+        },
+        "description": "Test de seguridad: debe retornar 401 Unauthorized porque no tiene el header Authorization.\n\n**Respuesta esperada:**\n- 401 Unauthorized"
+      },
+      "response": []
+    },
+    {
+      "name": "5. POST - Secret Incorrecto (debe fallar)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer secret-incorrecto",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/cron/lock-matches",
+          "host": ["{{base_url}}"],
+          "path": ["api", "cron", "lock-matches"]
+        },
+        "description": "Test de seguridad: debe retornar 401 Unauthorized porque el secret es incorrecto.\n\n**Respuesta esperada:**\n- 401 Unauthorized"
+      },
+      "response": []
+    }
+  ]
+}
+

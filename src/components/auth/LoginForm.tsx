@@ -1,91 +1,160 @@
+'use client'
+
+import * as React from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { signIn } from 'next-auth/react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/auth/PasswordInput'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { useState } from 'react'
-import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { loginSchema, type LoginInput } from '@/lib/validations/auth'
+import { AlertCircle, Loader2 } from 'lucide-react'
 
 export function LoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/home'
+  const [error, setError] = React.useState<string>('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
+
+  // Focus en el primer campo al montar
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      document.getElementById('email')?.focus()
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const onSubmit = async (data: LoginInput) => {
     setError('')
-    setIsLoading(true)
 
-    const result = await signIn('credentials', {
-      redirect: false, // Evita la redirección automática
-      email,
-      password,
-    })
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: data.email.trim().toLowerCase(),
+        password: data.password,
+      })
 
-    setIsLoading(false)
-
-    if (result?.error) {
-      // Mostrar un error amigable en lugar del texto crudo del error de NextAuth
-      setError(
-        'Credenciales no válidas. Por favor, verifica tu email y contraseña.'
-      )
-    } else {
-      // Redirigir al usuario a la página de inicio (ruta protegida)
-      router.push('/home')
+      if (result?.error) {
+        setError(
+          'Credenciales no válidas. Por favor, verifica tu email y contraseña.'
+        )
+      } else {
+        router.push(callbackUrl)
+        router.refresh()
+      }
+    } catch {
+      setError('Ocurrió un error inesperado. Por favor, intenta de nuevo.')
     }
   }
 
   return (
-    <Card className="w-[380px]">
-      <CardHeader>
-        <CardTitle>Iniciar Sesión</CardTitle>
+    <Card className="w-full max-w-md">
+      <CardHeader className="space-y-1 text-center">
+        <CardTitle className="text-2xl font-bold">Iniciar Sesión</CardTitle>
         <CardDescription>
-          Ingresa tus credenciales de administrador.
+          Ingresa tus credenciales para acceder a tu cuenta
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="grid gap-4">
-          <div className="grid gap-2">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
-              placeholder="admin@prode2026.com"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
+              placeholder="tu@email.com"
+              autoComplete="email"
+              disabled={isSubmitting}
+              {...register('email', {
+                onChange: () => setError(''), // Limpiar error al escribir
+              })}
+              aria-invalid={errors.email ? 'true' : 'false'}
+              className={errors.email ? 'border-destructive' : ''}
             />
+            {errors.email && (
+              <p className="text-destructive text-sm" role="alert">
+                {errors.email.message}
+              </p>
+            )}
           </div>
-          <div className="grid gap-2">
+
+          <div className="space-y-2">
             <Label htmlFor="password">Contraseña</Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
+              placeholder="••••••••"
+              autoComplete="current-password"
+              disabled={isSubmitting}
+              {...register('password')}
+              aria-invalid={errors.password ? 'true' : 'false'}
+              className={errors.password ? 'border-destructive' : ''}
             />
+            {errors.password && (
+              <p className="text-destructive text-sm" role="alert">
+                {errors.password.message}
+              </p>
+            )}
           </div>
+
           {error && (
-            <div className="rounded-md bg-red-50 p-2 text-sm text-red-600">
-              {error}
-            </div>
+            <Alert variant="destructive" role="alert">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Cargando...' : 'Iniciar Sesión'}
+
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Iniciando sesión...
+              </>
+            ) : (
+              'Iniciar Sesión'
+            )}
           </Button>
         </form>
       </CardContent>
+      <CardFooter className="flex flex-col space-y-4">
+        <div className="text-center text-sm">
+          <Link
+            href="/forgot-password"
+            className="text-primary hover:underline"
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
+        <div className="text-muted-foreground text-center text-sm">
+          ¿No tienes una cuenta?{' '}
+          <Link href="/register" className="text-primary hover:underline">
+            Regístrate
+          </Link>
+        </div>
+      </CardFooter>
     </Card>
   )
 }

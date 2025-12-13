@@ -12,6 +12,7 @@ describe('Auth Validations', () => {
         email: 'test@example.com',
         name: 'Test User',
         password: 'Test1234',
+        confirmPassword: 'Test1234',
       }
 
       const result = registerSchema.parse(validData)
@@ -19,7 +20,21 @@ describe('Auth Validations', () => {
         email: 'test@example.com',
         name: 'Test User',
         password: 'Test1234',
+        confirmPassword: 'Test1234',
       })
+    })
+
+    it('debería rechazar cuando las contraseñas no coinciden', () => {
+      const invalidData = {
+        email: 'test@example.com',
+        name: 'Test User',
+        password: 'Test1234',
+        confirmPassword: 'Test5678', // Diferente
+      }
+
+      expect(() => registerSchema.parse(invalidData)).toThrow(
+        'Las contraseñas no coinciden'
+      )
     })
 
     it('debería rechazar email inválido', () => {
@@ -27,6 +42,7 @@ describe('Auth Validations', () => {
         email: 'not-an-email',
         name: 'Test User',
         password: 'Test1234',
+        confirmPassword: 'Test1234',
       }
 
       expect(() => registerSchema.parse(invalidData)).toThrow()
@@ -37,6 +53,7 @@ describe('Auth Validations', () => {
         email: 'test@example.com',
         name: 'Test User',
         password: 'test1234', // Sin mayúscula
+        confirmPassword: 'test1234',
       }
 
       expect(() => registerSchema.parse(invalidData)).toThrow(
@@ -49,6 +66,7 @@ describe('Auth Validations', () => {
         email: 'test@example.com',
         name: 'Test User',
         password: 'TestTest', // Sin número
+        confirmPassword: 'TestTest',
       }
 
       expect(() => registerSchema.parse(invalidData)).toThrow(
@@ -61,6 +79,7 @@ describe('Auth Validations', () => {
         email: 'test@example.com',
         name: 'Test User',
         password: 'Test1', // Menos de 8 caracteres
+        confirmPassword: 'Test1',
       }
 
       expect(() => registerSchema.parse(invalidData)).toThrow(
@@ -73,6 +92,7 @@ describe('Auth Validations', () => {
         email: 'test@example.com',
         name: 'A', // 1 caracter
         password: 'Test1234',
+        confirmPassword: 'Test1234',
       }
 
       expect(() => registerSchema.parse(invalidData)).toThrow()
@@ -83,6 +103,7 @@ describe('Auth Validations', () => {
         email: '  test@example.com  ',
         name: '  Test User  ',
         password: 'Test1234',
+        confirmPassword: 'Test1234',
       }
 
       const result = registerSchema.parse(dataWithSpaces)
@@ -95,6 +116,7 @@ describe('Auth Validations', () => {
         email: 'TEST@EXAMPLE.COM',
         name: 'Test User',
         password: 'Test1234',
+        confirmPassword: 'Test1234',
       }
 
       const result = registerSchema.parse(dataWithUppercase)

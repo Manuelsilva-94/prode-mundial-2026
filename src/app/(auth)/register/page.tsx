@@ -1,13 +1,13 @@
 'use client'
 
 import { Suspense } from 'react'
-import { LoginForm } from '@/components/auth/LoginForm'
+import { RegisterForm } from '@/components/auth/RegisterForm'
 
-function LoginFormWrapper() {
-  return <LoginForm />
+function RegisterFormWrapper() {
+  return <RegisterForm />
 }
 
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
       <div className="flex w-full max-w-md flex-col items-center space-y-6">
@@ -20,14 +20,15 @@ export default function LoginPage() {
               Prode Mundial 2026
             </h1>
             <p className="text-muted-foreground mt-2 text-sm">
-              Pronósticos deportivos para el Mundial
+              Únete y haz tus pronósticos
             </p>
           </div>
         </div>
         <Suspense fallback={<div>Cargando...</div>}>
-          <LoginFormWrapper />
+          <RegisterFormWrapper />
         </Suspense>
       </div>
     </main>
   )
 }
+

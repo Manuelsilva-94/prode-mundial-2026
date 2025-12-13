@@ -1,0 +1,407 @@
+{
+	"info": {
+		"_postman_id": "predictions-stats-collection",
+		"name": "Predictions and Stats API",
+		"description": "Colección para testear los endpoints de predicciones del usuario y estadísticas",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Predictions",
+			"item": [
+				{
+					"name": "GET /api/predictions/me - Todas las predicciones",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/predictions/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"predictions",
+								"me"
+							]
+						},
+						"description": "Obtiene todas las predicciones del usuario autenticado"
+					},
+					"response": []
+				},
+				{
+					"name": "GET /api/predictions/me - Con paginación",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/predictions/me?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"predictions",
+								"me"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Obtiene predicciones con paginación (10 por página)"
+					},
+					"response": []
+				},
+				{
+					"name": "GET /api/predictions/me - Filtrar por fase (phaseId)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/predictions/me?phaseId={{phase_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"predictions",
+								"me"
+							],
+							"query": [
+								{
+									"key": "phaseId",
+									"value": "{{phase_id}}",
+									"description": "UUID de la fase del torneo"
+								}
+							]
+						},
+						"description": "Filtra predicciones por fase usando el ID de la fase"
+					},
+					"response": []
+				},
+				{
+					"name": "GET /api/predictions/me - Filtrar por fase (phaseSlug)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/predictions/me?phaseSlug=grupos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"predictions",
+								"me"
+							],
+							"query": [
+								{
+									"key": "phaseSlug",
+									"value": "grupos",
+									"description": "Slug de la fase (ej: grupos, octavos, cuartos, etc.)"
+								}
+							]
+						},
+						"description": "Filtra predicciones por fase usando el slug de la fase"
+					},
+					"response": []
+				},
+				{
+					"name": "GET /api/predictions/me - Filtrar por resultado correcto",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/predictions/me?result=correct",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"predictions",
+								"me"
+							],
+							"query": [
+								{
+									"key": "result",
+									"value": "correct",
+									"description": "Filtra predicciones correctas (puntos > 0)"
+								}
+							]
+						},
+						"description": "Filtra solo predicciones correctas (que ganaron puntos)"
+					},
+					"response": []
+				},
+				{
+					"name": "GET /api/predictions/me - Filtrar por resultado incorrecto",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/predictions/me?result=incorrect",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"predictions",
+								"me"
+							],
+							"query": [
+								{
+									"key": "result",
+									"value": "incorrect",
+									"description": "Filtra predicciones incorrectas (puntos = 0, partido finalizado)"
+								}
+							]
+						},
+						"description": "Filtra solo predicciones incorrectas"
+					},
+					"response": []
+				},
+				{
+					"name": "GET /api/predictions/me - Filtrar por resultado exacto",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/predictions/me?result=exact",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"predictions",
+								"me"
+							],
+							"query": [
+								{
+									"key": "result",
+									"value": "exact",
+									"description": "Filtra solo predicciones con resultado exacto"
+								}
+							]
+						},
+						"description": "Filtra solo predicciones con resultado exacto (marcador exacto)"
+					},
+					"response": []
+				},
+				{
+					"name": "GET /api/predictions/me - Ordenar por puntos (desc)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/predictions/me?orderBy=points&order=desc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"predictions",
+								"me"
+							],
+							"query": [
+								{
+									"key": "orderBy",
+									"value": "points",
+									"description": "Ordenar por: date, points, created"
+								},
+								{
+									"key": "order",
+									"value": "desc",
+									"description": "Orden: asc o desc"
+								}
+							]
+						},
+						"description": "Ordena predicciones por puntos ganados (descendente)"
+					},
+					"response": []
+				},
+				{
+					"name": "GET /api/predictions/me - Ordenar por fecha (asc)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/predictions/me?orderBy=date&order=asc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"predictions",
+								"me"
+							],
+							"query": [
+								{
+									"key": "orderBy",
+									"value": "date",
+									"description": "Ordenar por fecha del partido"
+								},
+								{
+									"key": "order",
+									"value": "asc",
+									"description": "Orden ascendente (más antiguas primero)"
+								}
+							]
+						},
+						"description": "Ordena predicciones por fecha del partido (ascendente)"
+					},
+					"response": []
+				},
+				{
+					"name": "GET /api/predictions/me - Filtros combinados",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/predictions/me?phaseSlug=grupos&result=correct&orderBy=points&order=desc&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"predictions",
+								"me"
+							],
+							"query": [
+								{
+									"key": "phaseSlug",
+									"value": "grupos"
+								},
+								{
+									"key": "result",
+									"value": "correct"
+								},
+								{
+									"key": "orderBy",
+									"value": "points"
+								},
+								{
+									"key": "order",
+									"value": "desc"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Ejemplo combinando múltiples filtros y ordenamiento"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para obtener y filtrar las predicciones del usuario"
+		},
+		{
+			"name": "User Stats",
+			"item": [
+				{
+					"name": "GET /api/users/me/stats - Estadísticas completas",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/me/stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"me",
+								"stats"
+							]
+						},
+						"description": "Obtiene todas las estadísticas del usuario autenticado:\n- Total de puntos\n- Ranking actual\n- Predicciones totales, correctas, exactas\n- Tasa de acierto\n- Mejor predicción\n- Racha actual\n- Evolución de puntos (array para gráfico)\n- Estadísticas por fase\n- Comparación con promedio general"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para obtener estadísticas detalladas del usuario"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "phase_id",
+			"value": "",
+			"type": "string",
+			"description": "UUID de una fase del torneo (obtener de GET /api/phases o crear manualmente)"
+		}
+	]
+}
+

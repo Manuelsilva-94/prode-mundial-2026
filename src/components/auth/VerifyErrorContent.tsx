@@ -49,7 +49,7 @@ export default function VerifyErrorContent() {
   const error = errorMessages[reason] || errorMessages.unknown
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-red-600 to-orange-500 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-600 to-orange-500 px-4">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-2xl">
         <div className="mb-6 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
@@ -106,14 +106,14 @@ export default function VerifyErrorContent() {
           {reason === 'already_verified' ? (
             <Link
               href="/auth/login"
-              className="block w-full rounded-lg bg-linear-to-r from-green-600 to-teal-500 py-3 text-center font-semibold text-white transition hover:from-green-700 hover:to-teal-600"
+              className="block w-full rounded-lg bg-gradient-to-r from-green-600 to-teal-500 py-3 text-center font-semibold text-white transition hover:from-green-700 hover:to-teal-600"
             >
               Iniciar sesión
             </Link>
           ) : (
             <Link
               href="/auth/resend-verification"
-              className="block w-full rounded-lg bg-linear-to-r from-red-600 to-orange-500 py-3 text-center font-semibold text-white transition hover:from-red-700 hover:to-orange-600"
+              className="block w-full rounded-lg bg-gradient-to-r from-red-600 to-orange-500 py-3 text-center font-semibold text-white transition hover:from-red-700 hover:to-orange-600"
             >
               {error.action}
             </Link>

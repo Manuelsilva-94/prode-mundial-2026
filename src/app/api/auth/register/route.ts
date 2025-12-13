@@ -7,11 +7,14 @@ import { sendVerificationEmail } from '@/lib/email/email-service'
 import { Prisma } from '@prisma/client'
 import { ZodError } from 'zod'
 
+// Schema para la API (sin confirmPassword)
+const registerApiSchema = registerSchema.omit({ confirmPassword: true })
+
 export async function POST(request: NextRequest) {
   try {
-    // 1. Parsear y validar el body
+    // 1. Parsear y validar el body (el schema del formulario ya validó confirmPassword)
     const body = await request.json()
-    const validatedData = registerSchema.parse(body)
+    const validatedData = registerApiSchema.parse(body)
 
     // 2. Verificar si el email ya existe
     const existingUser = await prisma.user.findUnique({

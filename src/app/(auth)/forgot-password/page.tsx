@@ -30,14 +30,14 @@ export default function ForgotPasswordPage() {
         setStatus('error')
         setMessage(data.error || 'Error al procesar la solicitud')
       }
-    } catch (error) {
+    } catch {
       setStatus('error')
       setMessage('Error de conexión')
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-500 to-rose-500 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-pink-500 to-rose-500 px-4">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-2xl">
         <div className="mb-6 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-pink-100">
@@ -125,7 +125,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={status === 'loading'}
-              className="w-full rounded-lg bg-gradient-to-r from-pink-500 to-rose-500 py-3 font-semibold text-white transition hover:from-pink-600 hover:to-rose-600 disabled:opacity-50"
+              className="w-full rounded-lg bg-linear-to-r from-pink-500 to-rose-500 py-3 font-semibold text-white transition hover:from-pink-600 hover:to-rose-600 disabled:opacity-50"
             >
               {status === 'loading'
                 ? 'Enviando...'

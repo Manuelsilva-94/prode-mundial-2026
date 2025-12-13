@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function VerifySuccessPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-600 to-blue-500 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-600 to-blue-500 px-4">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-2xl">
         <div className="mb-6 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
@@ -50,8 +50,8 @@ export default function VerifySuccessPage() {
           </div>
 
           <Link
-            href="/auth/login"
-            className="block w-full rounded-lg bg-gradient-to-r from-purple-600 to-blue-500 py-3 text-center font-semibold text-white transition hover:from-purple-700 hover:to-blue-600"
+            href="/login"
+            className="block w-full rounded-lg bg-linear-to-r from-purple-600 to-blue-500 py-3 text-center font-semibold text-white transition hover:from-purple-700 hover:to-blue-600"
           >
             Iniciar sesión
           </Link>

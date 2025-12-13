@@ -81,7 +81,7 @@ function ResetPasswordContent() {
         setStatus('error')
         setMessage(data.error || 'Error al restablecer la contraseña')
       }
-    } catch (error) {
+    } catch {
       setStatus('error')
       setMessage('Error de conexión')
     }
@@ -90,7 +90,7 @@ function ResetPasswordContent() {
   // Mostrar loading mientras valida el token
   if (status === 'validating') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-600 to-pink-500 px-4">
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-600 to-pink-500 px-4">
         <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-2xl">
           <div className="text-center">
             <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600"></div>
@@ -104,7 +104,7 @@ function ResetPasswordContent() {
   // Mostrar error si el token no es válido
   if (!tokenValid) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-600 to-orange-500 px-4">
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-red-600 to-orange-500 px-4">
         <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-2xl">
           <div className="mb-6 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
@@ -151,7 +151,7 @@ function ResetPasswordContent() {
 
             <Link
               href="/forgot-password"
-              className="block w-full rounded-lg bg-gradient-to-r from-red-600 to-orange-500 py-3 text-center font-semibold text-white transition hover:from-red-700 hover:to-orange-600"
+              className="block w-full rounded-lg bg-linear-to-r from-red-600 to-orange-500 py-3 text-center font-semibold text-white transition hover:from-red-700 hover:to-orange-600"
             >
               Solicitar nuevo link
             </Link>
@@ -169,7 +169,7 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-600 to-pink-500 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-600 to-pink-500 px-4">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-2xl">
         <div className="mb-6 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100">
@@ -269,7 +269,7 @@ function ResetPasswordContent() {
             <button
               type="submit"
               disabled={status === 'loading'}
-              className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 py-3 font-semibold text-white transition hover:from-purple-700 hover:to-pink-600 disabled:opacity-50"
+              className="w-full rounded-lg bg-linear-to-r from-purple-600 to-pink-500 py-3 font-semibold text-white transition hover:from-purple-700 hover:to-pink-600 disabled:opacity-50"
             >
               {status === 'loading'
                 ? 'Actualizando...'
