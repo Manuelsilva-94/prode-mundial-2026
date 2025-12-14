@@ -111,3 +111,77 @@ export function ProfileSkeleton({ className }: { className?: string }) {
   )
 }
 
+export function TeamViewSkeleton({ className }: { className?: string }) {
+  return (
+    <div className={cn('space-y-6', className)}>
+      {/* Team Info Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center space-x-3">
+                <Skeleton className="h-6 w-6" />
+                <Skeleton className="h-7 w-48" />
+              </div>
+              <Skeleton className="h-4 w-96" />
+            </div>
+            <div className="text-right space-y-1">
+              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Invite Code */}
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <div className="flex items-center space-x-2">
+              <Skeleton className="h-10 flex-1" />
+              <Skeleton className="h-10 w-10" />
+            </div>
+            <Skeleton className="h-3 w-64" />
+          </div>
+
+          {/* Creator Info */}
+          <div className="flex items-center space-x-2">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+
+          {/* Leave Button */}
+          <Skeleton className="h-10 w-32" />
+        </CardContent>
+      </Card>
+
+      {/* Members List */}
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-48" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between rounded-lg border p-3"
+              >
+                <div className="flex items-center space-x-3 flex-1">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-3 w-48" />
+                  </div>
+                </div>
+                <div className="text-right space-y-1">
+                  <Skeleton className="h-6 w-16" />
+                  <Skeleton className="h-3 w-12" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+

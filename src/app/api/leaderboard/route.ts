@@ -2,14 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { requireAuthUser } from '@/lib/auth/session'
 import { handleApiError } from '@/lib/api/error-handler'
+import { Prisma } from '@prisma/client'
 
 export async function GET(req: NextRequest) {
   try {
-    // Paginación
+    // Paginación y búsqueda
     const { searchParams } = new URL(req.url)
     const page = Number(searchParams.get('page')) || 1
     const limit = Number(searchParams.get('limit')) || 50
     const skip = (page - 1) * limit
+    const search = searchParams.get('search')?.trim()
 
     // Filtros avanzados (futuro): faseId, teamId, desde/hasta/periodo
     // ---
@@ -28,9 +30,21 @@ export async function GET(req: NextRequest) {
       // Usuario no autenticado, continuar sin autenticación
     }
 
+    // Construir where clause con búsqueda
+    const where: Prisma.LeaderboardCacheWhereInput = {}
+    if (search) {
+      where.user = {
+        name: {
+          contains: search,
+          mode: 'insensitive',
+        },
+      }
+    }
+
     // 1. Query paginada para el leaderboard principal
     const [rows, total] = await Promise.all([
       prisma.leaderboardCache.findMany({
+        where,
         orderBy: [
           { totalPoints: 'desc' },
           { accuracyRate: 'desc' },
@@ -47,7 +61,7 @@ export async function GET(req: NextRequest) {
           },
         },
       }),
-      prisma.leaderboardCache.count(),
+      prisma.leaderboardCache.count({ where }),
     ])
 
     // 2. Si hay usuario autenticado y NO está en el top actual, incluir su posición y stats

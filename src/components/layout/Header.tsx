@@ -33,9 +33,9 @@ interface NavLink {
 
 const navigation: NavLink[] = [
   { href: '/home', label: 'Inicio' },
+  { href: '/my-predictions', label: 'Mis Predicciones' },
   { href: '/leaderboard', label: 'Clasificación' },
   { href: '/teams', label: 'Equipos' },
-  { href: '/profile', label: 'Mi Perfil' },
 ]
 
 export function Header() {

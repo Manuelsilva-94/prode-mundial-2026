@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       status: match.status,
       lockTime: match.lockTime,
       isLocked: match.isLocked,
-      // Incluir predicción si existe
+      // Incluir predicción si existe (ya viene con take: 1)
       userPrediction: match.predictions?.[0] || null,
     }))
 

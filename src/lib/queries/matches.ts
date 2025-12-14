@@ -86,17 +86,20 @@ export async function getMatches(options: MatchQueryOptions) {
           },
         },
         // Incluir predicción del usuario si está autenticado
+        // Usamos take: 1 porque hay un unique constraint en userId+matchId
         ...(userId && {
           predictions: {
             where: {
               userId,
             },
+            take: 1,
             select: {
               id: true,
               predictedHomeScore: true,
               predictedAwayScore: true,
               pointsEarned: true,
               createdAt: true,
+              updatedAt: true,
             },
           },
         }),
@@ -112,7 +115,9 @@ export async function getMatches(options: MatchQueryOptions) {
       limit,
       total,
       totalPages: Math.ceil(total / limit),
-      hasMore: skip + limit < total,
+      hasNextPage: skip + limit < total,
+      hasPreviousPage: page > 1,
+      hasMore: skip + limit < total, // Mantener compatibilidad
     },
   }
 }

@@ -2,7 +2,6 @@
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -10,6 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 
 interface ConfirmDialogProps {
@@ -50,14 +50,11 @@ export function ConfirmDialog({
           <AlertDialogCancel disabled={isLoading}>
             {cancelLabel}
           </AlertDialogCancel>
-          <AlertDialogAction
+          {/* Usamos Button en lugar de AlertDialogAction para evitar el cierre automático */}
+          <Button
             onClick={handleConfirm}
             disabled={isLoading}
-            className={
-              variant === 'destructive'
-                ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                : ''
-            }
+            variant={variant === 'destructive' ? 'destructive' : 'default'}
           >
             {isLoading ? (
               <>
@@ -67,7 +64,7 @@ export function ConfirmDialog({
             ) : (
               confirmLabel
             )}
-          </AlertDialogAction>
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

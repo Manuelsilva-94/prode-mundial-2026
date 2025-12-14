@@ -1,6 +1,7 @@
 // prisma/seed.ts
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { calculatePointsForMatch } from '../src/lib/scoring/match-processor'
 
 const prisma = new PrismaClient()
 
@@ -35,87 +36,89 @@ async function main() {
     }),
     prisma.tournamentPhase.create({
       data: {
+        name: 'Dieciseisavos de Final',
+        slug: 'dieciseisavos',
+        sortOrder: 2,
+        pointsMultiplier: 1.0,
+      },
+    }),
+    prisma.tournamentPhase.create({
+      data: {
         name: 'Octavos de Final',
         slug: 'octavos',
-        sortOrder: 2,
-        pointsMultiplier: 1.5,
+        sortOrder: 3,
+        pointsMultiplier: 1.0,
       },
     }),
     prisma.tournamentPhase.create({
       data: {
         name: 'Cuartos de Final',
         slug: 'cuartos',
-        sortOrder: 3,
-        pointsMultiplier: 2.0,
+        sortOrder: 4,
+        pointsMultiplier: 1.0,
       },
     }),
     prisma.tournamentPhase.create({
       data: {
         name: 'Semifinales',
         slug: 'semifinales',
-        sortOrder: 4,
-        pointsMultiplier: 2.5,
+        sortOrder: 5,
+        pointsMultiplier: 1.0,
       },
     }),
     prisma.tournamentPhase.create({
       data: {
         name: 'Tercer Lugar',
         slug: 'tercer-lugar',
-        sortOrder: 5,
-        pointsMultiplier: 2.5,
+        sortOrder: 6,
+        pointsMultiplier: 1.0,
       },
     }),
     prisma.tournamentPhase.create({
       data: {
         name: 'Final',
         slug: 'final',
-        sortOrder: 6,
-        pointsMultiplier: 3.0,
+        sortOrder: 7,
+        pointsMultiplier: 1.0,
       },
     }),
   ])
   console.log(`✅ ${phases.length} fases creadas`)
 
   // 2️⃣ REGLAS DE PUNTUACIÓN (datos estables)
+  // Nota: Estas reglas se guardan en la DB pero el cálculo real se hace en src/lib/scoring/calculator.ts
+  // Se mantienen aquí para referencia y posibles consultas históricas
   console.log('🎯 Creando reglas de puntuación...')
   const rules = await Promise.all([
     prisma.scoringRule.create({
       data: {
         ruleType: 'EXACT_SCORE',
+        points: 12,
+        description: 'Acertar el resultado exacto (ej: 2-1 predicho, 2-1 real)',
+        isActive: true,
+      },
+    }),
+    prisma.scoringRule.create({
+      data: {
+        ruleType: 'CORRECT_WINNER_OR_DRAW',
         points: 5,
-        description: 'Acertar el resultado exacto (ej: 2-1)',
+        description: 'Acertar ganador o empate (sin resultado exacto)',
         isActive: true,
       },
     }),
     prisma.scoringRule.create({
       data: {
-        ruleType: 'CORRECT_WINNER',
-        points: 3,
-        description: 'Acertar el ganador pero no el resultado exacto',
+        ruleType: 'CORRECT_WINNER_PLUS_ONE_TEAM_SCORE',
+        points: 7,
+        description: 'Acertar ganador + goles de un equipo',
         isActive: true,
       },
     }),
     prisma.scoringRule.create({
       data: {
-        ruleType: 'CORRECT_DRAW',
-        points: 3,
-        description: 'Acertar que hay empate pero no el resultado exacto',
-        isActive: true,
-      },
-    }),
-    prisma.scoringRule.create({
-      data: {
-        ruleType: 'CORRECT_GOAL_DIFFERENCE',
+        ruleType: 'CORRECT_ONE_TEAM_SCORE',
         points: 2,
-        description: 'Acertar la diferencia de goles',
-        isActive: true,
-      },
-    }),
-    prisma.scoringRule.create({
-      data: {
-        ruleType: 'ONE_TEAM_SCORE',
-        points: 1,
-        description: 'Acertar los goles de al menos un equipo',
+        description: 'Acertar goles de un equipo (sin acertar ganador)',
         isActive: true,
       },
     }),
@@ -340,11 +343,17 @@ async function main() {
         matchId: matches[2].id,
         predictedHomeScore: 2,
         predictedAwayScore: 1,
-        pointsEarned: 5, // EXACT_SCORE
+        // Los puntos se calcularán usando calculatePointsForMatch
       },
     }),
   ])
   console.log(`✅ ${predictions.length} predicciones creadas`)
+
+  // Calcular puntos para el partido finalizado usando el sistema de scoring
+  if (matches[2].status === 'FINISHED' && matches[2].homeScore !== null && matches[2].awayScore !== null) {
+    console.log('🎯 Calculando puntos para el partido finalizado...')
+    await calculatePointsForMatch(matches[2].id)
+  }
 
   // 8️⃣ EQUIPOS CORPORATIVOS DE PRUEBA
   console.log('🏢 Creando equipos corporativos...')

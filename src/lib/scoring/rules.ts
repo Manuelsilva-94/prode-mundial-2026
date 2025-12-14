@@ -36,6 +36,7 @@ export const BASE_SCORING_RULES: ScoringRules = {
  */
 export const PHASE_MULTIPLIERS: Record<string, number> = {
   grupos: 1.0,
+  dieciseisavos: 1.0,
   octavos: 1.0,
   cuartos: 1.0,
   semifinales: 1.0,
