@@ -44,6 +44,7 @@ export const LazyPointsEvolutionChart = dynamic(
 ```
 
 **Componentes lazy-loaded:**
+
 - `PointsEvolutionChart` - Recharts es pesado (~200kb)
 - `PredictionsTable` - Tabla con muchas dependencias
 - `PhaseBreakdown` - Tabs con estadísticas
@@ -52,6 +53,7 @@ export const LazyPointsEvolutionChart = dynamic(
 ### Imágenes
 
 Todas las imágenes usan `next/image` con optimización automática:
+
 - Lazy loading nativo
 - Formato WebP automático
 - Responsive sizing
@@ -70,6 +72,7 @@ export const MatchCard = memo(function MatchCard({ match }) {
 ```
 
 **Componentes memoizados:**
+
 - `MatchCard` - Se renderizan muchos en la home
 - `LeaderboardTable` - Lista larga de usuarios
 
@@ -78,7 +81,9 @@ export const MatchCard = memo(function MatchCard({ match }) {
 ```tsx
 // Cálculos pesados memoizados
 const matchDateLocal = useMemo(() => {
-  return formatInTimeZone(new Date(match.matchDate), userTz, 'PPPp', { locale: es })
+  return formatInTimeZone(new Date(match.matchDate), userTz, 'PPPp', {
+    locale: es,
+  })
 }, [match.matchDate, userTz])
 
 // Callbacks memoizados para evitar re-renders de hijos
@@ -96,11 +101,11 @@ const handleSave = useCallback(async () => {
 new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 2 * 60 * 1000,      // 2 minutos fresh
-      gcTime: 10 * 60 * 1000,        // 10 minutos en caché
-      refetchOnWindowFocus: false,   // No refetch al cambiar ventana
-      refetchOnReconnect: false,     // No refetch al reconectar
-      retry: 2,                      // Máximo 2 reintentos
+      staleTime: 2 * 60 * 1000, // 2 minutos fresh
+      gcTime: 10 * 60 * 1000, // 10 minutos en caché
+      refetchOnWindowFocus: false, // No refetch al cambiar ventana
+      refetchOnReconnect: false, // No refetch al reconectar
+      retry: 2, // Máximo 2 reintentos
     },
   },
 })
@@ -129,10 +134,18 @@ Preferimos skeletons sobre spinners para mejor UX:
 
 ```tsx
 // src/components/ui/skeletons.tsx
-export function MatchCardSkeleton() { /* ... */ }
-export function TableSkeleton() { /* ... */ }
-export function ProfileSkeleton() { /* ... */ }
-export function TeamViewSkeleton() { /* ... */ }
+export function MatchCardSkeleton() {
+  /* ... */
+}
+export function TableSkeleton() {
+  /* ... */
+}
+export function ProfileSkeleton() {
+  /* ... */
+}
+export function TeamViewSkeleton() {
+  /* ... */
+}
 ```
 
 ### Suspense Boundaries
@@ -166,9 +179,11 @@ compiler: {
 Solo se cargan en desarrollo:
 
 ```tsx
-{process.env.NODE_ENV === 'development' && (
-  <ReactQueryDevtools initialIsOpen={false} />
-)}
+{
+  process.env.NODE_ENV === 'development' && (
+    <ReactQueryDevtools initialIsOpen={false} />
+  )
+}
 ```
 
 ## 📈 Métricas Recomendadas
@@ -204,4 +219,3 @@ Posibles mejoras futuras:
 3. **Virtualization**: Para listas muy largas (react-window)
 4. **Edge Functions**: Mover lógica a edge para menor latencia
 5. **ISR**: Regeneración incremental para páginas semi-estáticas
-
