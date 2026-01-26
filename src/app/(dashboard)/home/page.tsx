@@ -7,6 +7,7 @@ import { useMatches } from '@/hooks/use-matches'
 import { usePhases } from '@/hooks/use-phases'
 import { ErrorMessage } from '@/components/ui/error-message'
 import { EmptyState } from '@/components/ui/empty-state'
+import { NoMatchesEmptyState } from '@/components/ui/empty-states'
 import { MatchCardSkeleton } from '@/components/ui/skeletons'
 import { Calendar, CalendarDays, CalendarRange } from 'lucide-react'
 import { startOfToday, addDays } from 'date-fns'
@@ -121,8 +122,10 @@ export default function HomePage() {
           </p>
         </div>
         <ErrorMessage
-          message="Error al cargar los partidos. Por favor, intenta de nuevo."
+          title="Error al cargar los partidos"
+          message="No se pudieron cargar los partidos. Por favor, intenta de nuevo."
           onRetry={() => refetch()}
+          type="network"
         />
       </div>
     )
@@ -130,55 +133,61 @@ export default function HomePage() {
 
   return (
     <div className="container mx-auto space-y-8 px-4 py-8">
-      <div>
+      <header>
         <h1 className="text-3xl font-bold tracking-tight">Fixture</h1>
         <p className="text-muted-foreground mt-2">
           Visualiza y predice los partidos del torneo
         </p>
-      </div>
+      </header>
 
       {/* Filtros */}
       <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         {/* Filtro por fecha */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2 flex-wrap" role="group" aria-label="Filtros de fecha">
           <button
             onClick={() => setDateFilter('today')}
-            className={`flex items-center space-x-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+            className={`flex items-center justify-center gap-1.5 rounded-md px-4 py-2.5 text-base font-medium transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
               dateFilter === 'today'
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
             }`}
+            aria-pressed={dateFilter === 'today'}
+            aria-label="Filtrar partidos de hoy"
           >
-            <Calendar className="h-4 w-4" />
+            <Calendar className="h-4 w-4" aria-hidden="true" />
             <span>Hoy</span>
           </button>
           <button
             onClick={() => setDateFilter('tomorrow')}
-            className={`flex items-center space-x-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+            className={`flex items-center justify-center gap-1.5 rounded-md px-4 py-2.5 text-base font-medium transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
               dateFilter === 'tomorrow'
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
             }`}
+            aria-pressed={dateFilter === 'tomorrow'}
+            aria-label="Filtrar partidos de mañana"
           >
-            <CalendarDays className="h-4 w-4" />
+            <CalendarDays className="h-4 w-4" aria-hidden="true" />
             <span>Mañana</span>
           </button>
           <button
             onClick={() => setDateFilter('all')}
-            className={`flex items-center space-x-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+            className={`flex items-center justify-center gap-1.5 rounded-md px-4 py-2.5 text-base font-medium transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
               dateFilter === 'all'
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
             }`}
+            aria-pressed={dateFilter === 'all'}
+            aria-label="Mostrar todos los partidos"
           >
-            <CalendarRange className="h-4 w-4" />
+            <CalendarRange className="h-4 w-4" aria-hidden="true" />
             <span>Todos</span>
           </button>
         </div>
       </div>
 
       {/* Tabs por fase */}
-      {phases.length > 0 && (
+      {phases.length > 0 && sortedPhases.length > 0 ? (
         <Tabs
           defaultValue={sortedPhases[0]?.slug || 'all'}
           className="w-full"
@@ -224,6 +233,8 @@ export default function HomePage() {
             )
           })}
         </Tabs>
+      ) : (
+        <NoMatchesEmptyState />
       )}
     </div>
   )

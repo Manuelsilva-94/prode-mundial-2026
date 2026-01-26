@@ -50,8 +50,9 @@ export function MatchesTable({
   onViewPredictions,
 }: MatchesTableProps) {
   return (
-    <div className="rounded-md border">
-      <Table>
+    <div className="rounded-md border overflow-x-auto -mx-4 sm:mx-0">
+      <div className="min-w-full inline-block">
+        <Table className="min-w-[800px]">
         <TableHeader>
           <TableRow>
             <TableHead className="w-[180px]">Fecha</TableHead>
@@ -102,17 +103,19 @@ export function MatchesTable({
                       <div className="flex items-center gap-2">
                         <img
                           src={match.homeTeam.flagUrl}
-                          alt={match.homeTeam.name}
+                          alt={`Bandera de ${match.homeTeam.name}`}
                           className="h-5 w-7 rounded object-cover"
+                          role="img"
                         />
                         <span className="font-medium">{match.homeTeam.code}</span>
                       </div>
-                      <span className="text-muted-foreground">vs</span>
+                      <span className="text-muted-foreground" aria-label="versus">vs</span>
                       <div className="flex items-center gap-2">
                         <img
                           src={match.awayTeam.flagUrl}
-                          alt={match.awayTeam.name}
+                          alt={`Bandera de ${match.awayTeam.name}`}
                           className="h-5 w-7 rounded object-cover"
+                          role="img"
                         />
                         <span className="font-medium">{match.awayTeam.code}</span>
                       </div>
@@ -149,9 +152,13 @@ export function MatchesTable({
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Abrir menú</span>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          aria-label={`Acciones para partido ${match.homeTeam.name} vs ${match.awayTeam.name}`}
+                        >
+                          <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+                          <span className="sr-only">Abrir menú de acciones</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -184,6 +191,7 @@ export function MatchesTable({
           )}
         </TableBody>
       </Table>
+      </div>
     </div>
   )
 }

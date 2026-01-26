@@ -11,6 +11,7 @@ import {
 import { PageHeader } from '@/components/ui/page-header'
 import { TableSkeleton } from '@/components/ui/skeletons'
 import { ErrorMessage } from '@/components/ui/error-message'
+import { NoPredictionsEmptyState } from '@/components/ui/empty-states'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 
@@ -80,11 +81,13 @@ export default function MyPredictionsPage() {
           description="Estadísticas detalladas y historial completo"
         />
         <ErrorMessage
-          message="Error al cargar tus estadísticas. Por favor, intenta de nuevo."
+          title="Error al cargar tus estadísticas"
+          message="No se pudieron cargar tus predicciones y estadísticas. Por favor, intenta de nuevo."
           onRetry={() => {
             refetchStats()
             refetchPredictions()
           }}
+          type="network"
         />
       </div>
     )
@@ -132,8 +135,10 @@ export default function MyPredictionsPage() {
       <LazyPhaseBreakdown statsByPhase={stats.statsByPhase} />
 
       {/* Predictions Table - Lazy loaded */}
-      {predictions && predictions.length > 0 && (
+      {predictions && predictions.length > 0 ? (
         <LazyPredictionsTable predictions={predictions} phases={phases} />
+      ) : (
+        <NoPredictionsEmptyState isOwnProfile={true} />
       )}
     </div>
   )

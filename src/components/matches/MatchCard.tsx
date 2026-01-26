@@ -131,10 +131,10 @@ export const MatchCard = memo(function MatchCard({ match }: MatchCardProps) {
         {/* Equipos */}
         <div className="flex items-center justify-between">
           <div className="flex flex-1 items-center space-x-3">
-            <div className="relative h-10 w-14">
+            <div className="relative h-10 w-14" role="img" aria-label={`Bandera de ${match.homeTeam.name}`}>
               <Image
                 src={match.homeTeam.flagUrl}
-                alt={match.homeTeam.name}
+                alt={`Bandera de ${match.homeTeam.name}`}
                 fill
                 className="object-contain"
               />
@@ -146,7 +146,7 @@ export const MatchCard = memo(function MatchCard({ match }: MatchCardProps) {
           {isFinished &&
             match.homeScore !== null &&
             match.awayScore !== null && (
-              <div className="mx-4 flex items-center space-x-2">
+              <div className="mx-4 flex items-center space-x-2" role="status" aria-label={`Resultado: ${match.homeScore} a ${match.awayScore}`}>
                 <span className="text-2xl font-bold">
                   {match.homeScore} - {match.awayScore}
                 </span>
@@ -155,10 +155,10 @@ export const MatchCard = memo(function MatchCard({ match }: MatchCardProps) {
 
           <div className="flex flex-1 items-center justify-end space-x-3">
             <span className="font-medium">{match.awayTeam.name}</span>
-            <div className="relative h-10 w-14">
+            <div className="relative h-10 w-14" role="img" aria-label={`Bandera de ${match.awayTeam.name}`}>
               <Image
                 src={match.awayTeam.flagUrl}
-                alt={match.awayTeam.name}
+                alt={`Bandera de ${match.awayTeam.name}`}
                 fill
                 className="object-contain"
               />
@@ -177,10 +177,11 @@ export const MatchCard = memo(function MatchCard({ match }: MatchCardProps) {
                 value={homeScore}
                 onChange={(e) => setHomeScore(e.target.value)}
                 disabled={!canEdit || createPrediction.isPending}
-                className="w-16 text-center"
+                className="w-16 sm:w-20 h-11 sm:h-12 text-center text-base sm:text-lg font-semibold"
                 placeholder="0"
+                aria-label={`Goles de ${match.homeTeam.name}`}
               />
-              <span className="text-muted-foreground">-</span>
+              <span className="text-muted-foreground text-lg sm:text-xl" aria-label="separador">-</span>
               <Input
                 type="number"
                 min="0"
@@ -188,8 +189,9 @@ export const MatchCard = memo(function MatchCard({ match }: MatchCardProps) {
                 value={awayScore}
                 onChange={(e) => setAwayScore(e.target.value)}
                 disabled={!canEdit || createPrediction.isPending}
-                className="w-16 text-center"
+                className="w-16 sm:w-20 h-11 sm:h-12 text-center text-base sm:text-lg font-semibold"
                 placeholder="0"
+                aria-label={`Goles de ${match.awayTeam.name}`}
               />
             </div>
           </div>

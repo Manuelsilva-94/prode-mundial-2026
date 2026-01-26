@@ -96,8 +96,10 @@ export default function AdminResultsPage() {
               description="Actualiza los resultados de los partidos y calcula puntos automáticamente"
             />
             <ErrorMessage
-              message={error.message || 'Error al cargar los partidos'}
+              title="Error al cargar partidos"
+              message={error.message || 'No se pudieron cargar los partidos. Por favor, intenta de nuevo.'}
               onRetry={() => refetch()}
+              type="network"
             />
           </div>
         </main>

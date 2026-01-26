@@ -235,10 +235,13 @@ export function BulkResultInput({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      <DialogContent 
+        className="max-w-3xl max-h-[80vh] overflow-y-auto"
+        aria-describedby="bulk-input-description"
+      >
         <DialogHeader>
           <DialogTitle>Carga Masiva de Resultados</DialogTitle>
-          <DialogDescription>
+          <DialogDescription id="bulk-input-description">
             Ingresá múltiples resultados en formato texto. Un resultado por línea.
           </DialogDescription>
         </DialogHeader>

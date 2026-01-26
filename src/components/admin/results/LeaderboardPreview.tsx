@@ -149,11 +149,15 @@ export function LeaderboardPreview({
                         {entry.user.avatarUrl ? (
                           <img
                             src={entry.user.avatarUrl}
-                            alt={entry.user.name}
+                            alt={`Avatar de ${entry.user.name}`}
                             className="h-6 w-6 rounded-full"
+                            role="img"
                           />
                         ) : (
-                          <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-xs">
+                          <div 
+                            className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-xs"
+                            aria-label={entry.user.name}
+                          >
                             {entry.user.name.charAt(0).toUpperCase()}
                           </div>
                         )}

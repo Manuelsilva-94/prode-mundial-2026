@@ -60,5 +60,38 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-size: 16px; /* Base font size for better mobile readability */
+  }
+  
+  /* Ensure minimum touch target size on mobile */
+  @media (max-width: 768px) {
+    button, a, input[type="button"], input[type="submit"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+  
+  /* Focus visible styles for accessibility */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: calc(var(--radius) - 2px);
+  }
+  
+  /* Skip link styles */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    padding: 8px 16px;
+    text-decoration: none;
+    z-index: 100;
+    border-radius: 4px;
+  }
+  
+  .skip-link:focus {
+    top: 0;
   }
 }

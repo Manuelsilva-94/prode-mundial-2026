@@ -27,12 +27,13 @@ export function PageHeader({
     <div className={cn('mb-8 space-y-4', className)}>
       {/* Breadcrumbs */}
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav className="flex items-center space-x-2 text-sm text-muted-foreground">
+        <nav className="flex items-center space-x-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
           <Link
             href="/home"
-            className="hover:text-foreground transition-colors"
+            className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:rounded-sm"
+            aria-label="Ir al inicio"
           >
-            <Home className="h-4 w-4" />
+            <Home className="h-4 w-4" aria-hidden="true" />
           </Link>
           {breadcrumbs.map((crumb, index) => (
             <React.Fragment key={index}>
@@ -40,12 +41,12 @@ export function PageHeader({
               {crumb.href ? (
                 <Link
                   href={crumb.href}
-                  className="hover:text-foreground transition-colors"
+                  className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:rounded-sm"
                 >
                   {crumb.label}
                 </Link>
               ) : (
-                <span className="text-foreground">{crumb.label}</span>
+                <span className="text-foreground" aria-current="page">{crumb.label}</span>
               )}
             </React.Fragment>
           ))}

@@ -38,10 +38,10 @@ export function ConfirmResultDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent aria-describedby="confirm-result-description">
         <AlertDialogHeader>
           <AlertDialogTitle>Confirmar Resultado Inusual</AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogDescription id="confirm-result-description">
             Estás a punto de guardar un resultado con un score muy alto. ¿Estás
             seguro de que es correcto?
           </AlertDialogDescription>

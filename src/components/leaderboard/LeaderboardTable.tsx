@@ -45,8 +45,9 @@ export const LeaderboardTable = memo(function LeaderboardTable({
   currentUserId,
 }: LeaderboardTableProps) {
   return (
-    <div className="overflow-x-auto rounded-md border">
-      <Table>
+    <div className="overflow-x-auto rounded-md border -mx-4 sm:mx-0">
+      <div className="min-w-full inline-block">
+        <Table className="min-w-[640px]">
         <TableHeader>
           <TableRow>
             <TableHead className="w-16 text-center">Pos</TableHead>
@@ -104,6 +105,7 @@ export const LeaderboardTable = memo(function LeaderboardTable({
           })}
         </TableBody>
       </Table>
+      </div>
     </div>
   )
 })

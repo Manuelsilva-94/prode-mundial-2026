@@ -73,13 +73,13 @@ export function DeleteMatchDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent aria-describedby="delete-match-description">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
-            <Trash2 className="h-5 w-5 text-destructive" />
+            <Trash2 className="h-5 w-5 text-destructive" aria-hidden="true" />
             Eliminar Partido
           </AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogDescription id="delete-match-description">
             ¿Estás seguro de que querés eliminar el partido{' '}
             <strong>
               {match.homeTeam.name} vs {match.awayTeam.name}

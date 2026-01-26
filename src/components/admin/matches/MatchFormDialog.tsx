@@ -221,8 +221,9 @@ export function MatchFormDialog({
                             <div className="flex items-center gap-2">
                               <img
                                 src={team.flagUrl}
-                                alt={team.name}
+                                alt={`Bandera de ${team.name}`}
                                 className="h-4 w-6 rounded object-cover"
+                                role="img"
                               />
                               {team.name} ({team.code})
                             </div>
@@ -257,8 +258,9 @@ export function MatchFormDialog({
                             <div className="flex items-center gap-2">
                               <img
                                 src={team.flagUrl}
-                                alt={team.name}
+                                alt={`Bandera de ${team.name}`}
                                 className="h-4 w-6 rounded object-cover"
+                                role="img"
                               />
                               {team.name} ({team.code})
                             </div>

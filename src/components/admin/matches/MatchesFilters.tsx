@@ -60,12 +60,18 @@ export function MatchesFilters({ onFilterChange, onCreateNew }: MatchesFiltersPr
       <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
         {/* Búsqueda */}
         <div className="relative w-full sm:max-w-xs">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <label htmlFor="match-search" className="sr-only">
+            Buscar partidos por equipo
+          </label>
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input
+            id="match-search"
+            type="search"
             placeholder="Buscar por equipo..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
+            aria-label="Buscar partidos por nombre de equipo"
           />
         </div>
 
@@ -104,7 +110,7 @@ export function MatchesFilters({ onFilterChange, onCreateNew }: MatchesFiltersPr
             variant="ghost"
             size="sm"
             onClick={clearFilters}
-            className="h-10 px-3"
+            className="h-11 sm:h-10 px-3 min-h-[44px] sm:min-h-0"
           >
             <X className="mr-1 h-4 w-4" />
             Limpiar
@@ -113,7 +119,7 @@ export function MatchesFilters({ onFilterChange, onCreateNew }: MatchesFiltersPr
       </div>
 
       {/* Botón crear */}
-      <Button onClick={onCreateNew} className="w-full sm:w-auto">
+      <Button onClick={onCreateNew} className="w-full sm:w-auto h-11 sm:h-10 min-h-[44px] sm:min-h-0">
         <Plus className="mr-2 h-4 w-4" />
         Nuevo Partido
       </Button>

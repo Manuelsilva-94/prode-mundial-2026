@@ -74,10 +74,17 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {/* Skip to main content */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+      >
+        Saltar al contenido principal
+      </a>
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Logo */}
-        <Link href="/home" className="flex items-center space-x-2">
-          <div className="bg-primary text-primary-foreground flex h-10 w-10 items-center justify-center rounded-full text-xl font-bold">
+        <Link href="/home" className="flex items-center space-x-2" aria-label="Ir al inicio - Prode Mundial 2026">
+          <div className="bg-primary text-primary-foreground flex h-10 w-10 items-center justify-center rounded-full text-xl font-bold" aria-hidden="true">
             ⚽
           </div>
           <span className="text-xl font-bold tracking-tight">
@@ -86,7 +93,7 @@ export function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden md:flex items-center space-x-6" aria-label="Navegación principal">
           {navigation.map((link) => {
             const isActive = pathname === link.href || pathname?.startsWith(link.href + '/')
             return (
@@ -94,11 +101,12 @@ export function Header() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  'text-sm font-medium transition-colors hover:text-primary',
+                  'text-sm font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:rounded-sm',
                   isActive
                     ? 'text-foreground'
                     : 'text-muted-foreground'
                 )}
+                aria-current={isActive ? 'page' : undefined}
               >
                 {link.label}
               </Link>
@@ -124,13 +132,17 @@ export function Header() {
           <div className="hidden md:flex items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                <Button 
+                  variant="ghost" 
+                  className="relative h-10 w-10 rounded-full"
+                  aria-label={`Menú de usuario: ${session.user.name || 'Usuario'}`}
+                >
                   <Avatar className="h-10 w-10">
                     <AvatarImage
                       src={session.user.image || undefined}
-                      alt={session.user.name || 'User'}
+                      alt={`Avatar de ${session.user.name || 'Usuario'}`}
                     />
-                    <AvatarFallback>{userInitials}</AvatarFallback>
+                    <AvatarFallback aria-label={session.user.name || 'Usuario'}>{userInitials}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
@@ -182,16 +194,16 @@ export function Header() {
         {/* Mobile Menu Button */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon">
-              <Menu className="h-6 w-6" />
+            <Button variant="ghost" size="icon" aria-label="Abrir menú de navegación">
+              <Menu className="h-6 w-6" aria-hidden="true" />
               <span className="sr-only">Abrir menú</span>
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-[300px] sm:w-[400px]">
             <SheetHeader>
-              <SheetTitle>Menú</SheetTitle>
+              <SheetTitle>Menú de navegación</SheetTitle>
             </SheetHeader>
-            <nav className="flex flex-col space-y-4 mt-8">
+            <nav className="flex flex-col space-y-4 mt-8" aria-label="Navegación móvil">
               {navigation.map((link) => {
                 const isActive = pathname === link.href || pathname?.startsWith(link.href + '/')
                 return (
@@ -272,9 +284,10 @@ export function Header() {
                         handleMobileLinkClick()
                         handleLogout()
                       }}
-                      className="flex w-full items-center px-2 py-2 text-lg font-medium text-destructive transition-colors hover:text-destructive/80"
+                      className="flex w-full items-center px-2 py-2 text-lg font-medium text-destructive transition-colors hover:text-destructive/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:rounded-sm"
+                      aria-label="Cerrar sesión"
                     >
-                      <LogOut className="mr-2 h-4 w-4" />
+                      <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
                       Cerrar Sesión
                     </button>
                   </div>

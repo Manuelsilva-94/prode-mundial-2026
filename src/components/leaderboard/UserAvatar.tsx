@@ -18,8 +18,8 @@ export function UserAvatar({ name, avatarUrl, className }: UserAvatarProps) {
 
   return (
     <Avatar className={className}>
-      {avatarUrl && <AvatarImage src={avatarUrl} alt={name} />}
-      <AvatarFallback>{initials}</AvatarFallback>
+      {avatarUrl && <AvatarImage src={avatarUrl} alt={`Avatar de ${name}`} />}
+      <AvatarFallback aria-label={name}>{initials}</AvatarFallback>
     </Avatar>
   )
 }

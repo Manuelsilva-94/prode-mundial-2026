@@ -147,7 +147,7 @@ export function MatchResultCard({ match, onSuccess }: MatchResultCardProps) {
   return (
     <>
       <Card className={`transition-all ${hasResult ? 'bg-muted/50' : ''}`}>
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="space-y-4">
             {/* Header con fecha y fase */}
             <div className="flex items-center justify-between">
@@ -185,37 +185,41 @@ export function MatchResultCard({ match, onSuccess }: MatchResultCardProps) {
             </div>
 
             {/* Equipos y scores */}
-            <div className="grid grid-cols-12 gap-4 items-center">
+            <div className="flex flex-col sm:grid sm:grid-cols-12 gap-4 items-center">
               {/* Equipo local */}
-              <div className="col-span-5 flex items-center gap-3">
+              <div className="w-full sm:col-span-5 flex items-center gap-3">
                 <img
                   src={match.homeTeam.flagUrl}
                   alt={match.homeTeam.name}
-                  className="h-8 w-12 rounded object-cover"
+                  className="h-8 w-12 rounded object-cover flex-shrink-0"
                 />
-                <span className="font-medium text-sm">{match.homeTeam.name}</span>
+                <span className="font-medium text-sm sm:text-base truncate">{match.homeTeam.name}</span>
               </div>
 
               {/* Inputs de scores */}
-              <div className="col-span-2 flex items-center gap-2">
+              <div className="w-full sm:col-span-2 flex items-center gap-2 justify-center">
                 <Input
                   type="number"
                   min="0"
                   value={homeScore}
                   onChange={(e) => setHomeScore(e.target.value)}
                   disabled={hasResult || updateResult.isPending}
-                  className="text-center text-lg font-bold h-12"
+                  className="text-center text-lg sm:text-xl font-bold h-12 sm:h-14 text-base"
                   placeholder="0"
+                  aria-label={`Goles de ${match.homeTeam.name}`}
+                  aria-describedby={!isValidHome && homeScore !== '' ? 'home-score-error' : undefined}
                 />
-                <span className="text-lg font-bold">-</span>
+                <span className="text-lg sm:text-xl font-bold" aria-label="separador">-</span>
                 <Input
                   type="number"
                   min="0"
                   value={awayScore}
                   onChange={(e) => setAwayScore(e.target.value)}
                   disabled={hasResult || updateResult.isPending}
-                  className="text-center text-lg font-bold h-12"
+                  className="text-center text-lg sm:text-xl font-bold h-12 sm:h-14 text-base"
                   placeholder="0"
+                  aria-label={`Goles de ${match.awayTeam.name}`}
+                  aria-describedby={!isValidAway && awayScore !== '' ? 'away-score-error' : undefined}
                 />
                 {!hasResult && (
                   <Button
@@ -224,35 +228,37 @@ export function MatchResultCard({ match, onSuccess }: MatchResultCardProps) {
                     size="icon"
                     onClick={handlePasteScore}
                     disabled={updateResult.isPending}
-                    className="h-12 w-12"
+                    className="h-12 w-12 sm:h-14 sm:w-14"
+                    aria-label="Pegar score del portapapeles"
                     title="Pegar score del portapapeles"
                   >
-                    <ClipboardPaste className="h-4 w-4" />
+                    <ClipboardPaste className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
                   </Button>
                 )}
               </div>
 
               {/* Equipo visitante */}
-              <div className="col-span-5 flex items-center gap-3 justify-end">
-                <span className="font-medium text-sm">{match.awayTeam.name}</span>
+              <div className="w-full sm:col-span-5 flex items-center gap-3 justify-end sm:justify-end">
+                <span className="font-medium text-sm sm:text-base truncate">{match.awayTeam.name}</span>
                 <img
                   src={match.awayTeam.flagUrl}
-                  alt={match.awayTeam.name}
-                  className="h-8 w-12 rounded object-cover"
+                  alt={`Bandera de ${match.awayTeam.name}`}
+                  className="h-8 w-12 rounded object-cover flex-shrink-0"
+                  role="img"
                 />
               </div>
             </div>
 
             {/* Validaciones y botones */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="flex-1 min-w-0">
                 {!isValidHome && homeScore !== '' && (
-                  <p className="text-xs text-destructive">
+                  <p id="home-score-error" className="text-xs text-destructive" role="alert">
                     El score local debe ser un número mayor o igual a 0
                   </p>
                 )}
                 {!isValidAway && awayScore !== '' && (
-                  <p className="text-xs text-destructive">
+                  <p id="away-score-error" className="text-xs text-destructive" role="alert">
                     El score visitante debe ser un número mayor o igual a 0
                   </p>
                 )}
@@ -272,14 +278,14 @@ export function MatchResultCard({ match, onSuccess }: MatchResultCardProps) {
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                 {lastWarning && hasResult && (
                   <Button
                     onClick={handleRecalculate}
                     disabled={calculatePoints.isPending}
                     size="sm"
                     variant="outline"
-                    className="min-w-[160px]"
+                    className="w-full sm:min-w-[160px] h-11"
                   >
                     {calculatePoints.isPending ? (
                       <>
@@ -298,7 +304,7 @@ export function MatchResultCard({ match, onSuccess }: MatchResultCardProps) {
                   onClick={() => setShowLeaderboardPreview(true)}
                   size="sm"
                   variant="ghost"
-                  className="min-w-[120px]"
+                  className="w-full sm:min-w-[120px] h-11"
                 >
                   <Trophy className="mr-2 h-4 w-4" />
                   Ver Ranking
@@ -307,7 +313,7 @@ export function MatchResultCard({ match, onSuccess }: MatchResultCardProps) {
                   onClick={handleSave}
                   disabled={!canSave || hasResult}
                   size="sm"
-                  className="min-w-[140px]"
+                  className="w-full sm:min-w-[140px] h-11"
                 >
                   {updateResult.isPending ? (
                     <>

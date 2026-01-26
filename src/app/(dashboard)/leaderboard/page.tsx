@@ -16,6 +16,7 @@ import { useTeamsLeaderboard, TeamLeaderboardEntry } from '@/hooks/use-teams-lea
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { ErrorMessage } from '@/components/ui/error-message'
 import { EmptyState } from '@/components/ui/empty-state'
+import { NoLeaderboardEmptyState, NoSearchResultsEmptyState } from '@/components/ui/empty-states'
 import { TableSkeleton } from '@/components/ui/skeletons'
 import { PageHeader } from '@/components/ui/page-header'
 
@@ -186,7 +187,9 @@ export default function LeaderboardPage() {
           </TabsList>
         </Tabs>
         <ErrorMessage
-          message={`Error al cargar el leaderboard de ${leaderboardType === 'individual' ? 'usuarios' : 'equipos'}.`}
+          title="Error al cargar clasificación"
+          message={`No se pudo cargar el leaderboard de ${leaderboardType === 'individual' ? 'usuarios' : 'equipos'}. Por favor, intenta de nuevo.`}
+          type="network"
           onRetry={() => refetch()}
         />
       </div>
@@ -234,12 +237,18 @@ export default function LeaderboardPage() {
       {/* Search */}
       <div className="flex items-center space-x-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <label htmlFor="leaderboard-search" className="sr-only">
+            {leaderboardType === 'individual' ? 'Buscar usuario en el leaderboard' : 'Buscar equipo en el leaderboard'}
+          </label>
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input
+            id="leaderboard-search"
+            type="search"
             placeholder={leaderboardType === 'individual' ? 'Buscar usuario...' : 'Buscar equipo...'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
+            aria-label={leaderboardType === 'individual' ? 'Buscar usuario en el leaderboard' : 'Buscar equipo en el leaderboard'}
           />
         </div>
       </div>
@@ -248,15 +257,11 @@ export default function LeaderboardPage() {
       {leaderboardType === 'individual' && (
         <>
           {allEntries.length === 0 ? (
-            <EmptyState
-              icon={User}
-              title="No hay resultados"
-              description={
-                debouncedSearch
-                  ? `No se encontraron usuarios que coincidan con "${debouncedSearch}"`
-                  : 'No hay participantes en el leaderboard aún'
-              }
-            />
+            debouncedSearch ? (
+              <NoSearchResultsEmptyState searchTerm={debouncedSearch} />
+            ) : (
+              <NoLeaderboardEmptyState />
+            )
           ) : (
             <LeaderboardView entries={allEntries} currentUserId={currentUserId} />
           )}
@@ -267,15 +272,19 @@ export default function LeaderboardPage() {
       {leaderboardType === 'teams' && (
         <>
           {!teamsData?.teams || teamsData.teams.length === 0 ? (
-            <EmptyState
-              icon={Users}
-              title="No hay equipos"
-              description={
-                debouncedSearch
-                  ? `No se encontraron equipos con "${debouncedSearch}"`
-                  : 'Aún no hay equipos registrados'
-              }
-            />
+            debouncedSearch ? (
+              <NoSearchResultsEmptyState searchTerm={debouncedSearch} />
+            ) : (
+              <EmptyState
+                icon={Users}
+                title="Aún no hay equipos"
+                description="Los equipos aparecerán aquí cuando los usuarios comiencen a crearlos y unirse."
+                action={{
+                  label: 'Crear equipo',
+                  href: '/teams',
+                }}
+              />
+            )
           ) : isDesktop ? (
             <TeamLeaderboardTable
               teams={teamsData.teams}

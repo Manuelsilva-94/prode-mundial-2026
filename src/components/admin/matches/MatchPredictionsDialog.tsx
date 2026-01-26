@@ -19,7 +19,8 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, Trophy } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
+import { AlertCircle, Trophy, Inbox } from 'lucide-react'
 import type { AdminMatch } from '@/hooks/use-admin-matches'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -108,13 +109,16 @@ export function MatchPredictionsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent 
+        className="max-w-4xl max-h-[80vh] overflow-y-auto"
+        aria-describedby="predictions-dialog-description"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5" />
+            <Trophy className="h-5 w-5" aria-hidden="true" />
             Predicciones del Partido
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription id="predictions-dialog-description">
             {match.homeTeam.name} vs {match.awayTeam.name}
             {hasResult && (
               <span className="ml-2 font-semibold">
@@ -136,12 +140,12 @@ export function MatchPredictionsDialog({
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : data && data.data.predictions.length === 0 ? (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              No hay predicciones para este partido.
-            </AlertDescription>
-          </Alert>
+          <EmptyState
+            icon={Inbox}
+            title="Sin predicciones"
+            description="Aún no hay predicciones para este partido. Los usuarios pueden hacer sus predicciones hasta que se bloquee el partido."
+            size="md"
+          />
         ) : data ? (
           <div className="space-y-4">
             {/* Resumen */}
