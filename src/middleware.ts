@@ -30,8 +30,8 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const pathname = req.nextUrl.pathname
 
-        // Rutas que requieren autenticación (todas excepto login y la raíz)
-        const protectedRoutes = ['/home', '/profile', '/admin']
+    // Rutas que requieren autenticación (todas excepto login y la raíz)
+    const protectedRoutes = ['/home', '/profile', '/admin', '/leaderboard', '/teams', '/my-predictions', '/users']
 
         // Si la ruta es protegida, se requiere un token
         if (protectedRoutes.some((route) => pathname.startsWith(route))) {
@@ -54,12 +54,19 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    '/home', // Captura la ruta exacta /home
-    '/home/:path*', // Captura sub-rutas como /home/partidos
-    '/admin', // Captura la ruta exacta /admin
+    '/home',
+    '/home/:path*',
+    '/admin',
     '/admin/:path*',
-    '/profile', // Si la tienes
+    '/profile',
     '/profile/:path*',
+    '/leaderboard',
+    '/leaderboard/:path*',
+    '/teams',
+    '/teams/:path*',
+    '/my-predictions',
+    '/my-predictions/:path*',
+    '/users/:path*',
     '/login',
   ],
 }

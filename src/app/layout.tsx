@@ -5,6 +5,7 @@ import { SessionProvider } from '@/components/providers/SessionProvider'
 import { QueryProvider } from '@/components/providers/QueryProvider'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { Toaster } from '@/components/ui/sonner'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -38,6 +39,7 @@ export default function RootLayout({
               <main className="flex-1">{children}</main>
               <Footer />
             </div>
+            <Toaster />
           </SessionProvider>
         </QueryProvider>
       </body>

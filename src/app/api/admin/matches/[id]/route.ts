@@ -1,83 +1,37 @@
-// app/api/admin/matches/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth/session'
-import { handleApiError } from '@/lib/api/error-handler'
 import { prisma } from '@/lib/db'
-import {
-  updateMatchSchema,
-  validateMatchUpdate,
-  validateMatchDeletion,
-  calculateLockTime,
-  isMatchLocked,
-} from '@/lib/validations/match'
-import { Prisma } from '@prisma/client'
+import { handleApiError } from '@/lib/api/error-handler'
+import { updateMatchSchema } from '@/lib/validations/match'
+import { subHours } from 'date-fns'
 import { calculatePointsForMatch } from '@/lib/scoring/match-processor'
 
 /**
- * GET /api/admin/matches/:id
- * Obtiene un partido específico con todos sus detalles
- * Solo accesible por administradores
+ * GET /api/admin/matches/[id]
+ * Obtener un partido específico (solo admin)
  */
 export async function GET(
-  _req: NextRequest,
-  props: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdmin()
-
-    // Await params en Next.js 15
-    const params = await props.params
+    const { id } = await context.params
 
     const match = await prisma.match.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         homeTeam: {
-          select: {
-            id: true,
-            name: true,
-            fullName: true,
-            code: true,
-            flagUrl: true,
-            groupLetter: true,
-          },
+          select: { id: true, name: true, code: true, flagUrl: true },
         },
         awayTeam: {
-          select: {
-            id: true,
-            name: true,
-            fullName: true,
-            code: true,
-            flagUrl: true,
-            groupLetter: true,
-          },
+          select: { id: true, name: true, code: true, flagUrl: true },
         },
         phase: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            sortOrder: true,
-            pointsMultiplier: true,
-          },
+          select: { id: true, name: true, slug: true, pointsMultiplier: true },
         },
-        predictions: {
-          select: {
-            id: true,
-            predictedHomeScore: true,
-            predictedAwayScore: true,
-            pointsEarned: true,
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-            createdAt: true,
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
+        _count: {
+          select: { predictions: true },
         },
       },
     })
@@ -96,138 +50,97 @@ export async function GET(
 }
 
 /**
- * PATCH /api/admin/matches/:id
- * Actualiza un partido existente
- * Solo accesible por administradores
+ * PATCH /api/admin/matches/[id]
+ * Actualizar un partido (solo admin)
  */
 export async function PATCH(
-  req: NextRequest,
-  props: { params: Promise<{ id: string }> }
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdmin()
+    const { id } = await context.params
 
-    // Await params en Next.js 15
-    const params = await props.params
+    const body = await request.json()
+    const data = updateMatchSchema.parse(body)
 
-    const body = await req.json()
+    // Verificar que el partido existe
+    const existingMatch = await prisma.match.findUnique({
+      where: { id },
+      include: {
+        _count: { select: { predictions: true } },
+      },
+    })
 
-    // Validar schema
-    const validatedData = updateMatchSchema.parse(body)
-
-    // Validaciones de negocio
-    const validationErrors = await validateMatchUpdate(params.id, validatedData)
-    if (validationErrors.length > 0) {
+    if (!existingMatch) {
       return NextResponse.json(
-        {
-          error: 'Errores de validación',
-          details: validationErrors,
-        },
-        { status: 400 }
+        { error: 'Partido no encontrado' },
+        { status: 404 }
       )
     }
 
-    // Preparar datos para actualización con tipo específico
-    const updateData: Prisma.MatchUpdateInput = {}
+    // Preparar datos de actualización
+    const updateData: Record<string, unknown> = {}
 
-    // Asignar campos uno por uno
-    if (validatedData.homeTeamId) {
-      updateData.homeTeam = { connect: { id: validatedData.homeTeamId } }
-    }
-    if (validatedData.awayTeamId) {
-      updateData.awayTeam = { connect: { id: validatedData.awayTeamId } }
-    }
-    if (validatedData.phaseId) {
-      updateData.phase = { connect: { id: validatedData.phaseId } }
-    }
-    if (validatedData.stadium !== undefined) {
-      updateData.stadium = validatedData.stadium
-    }
-    if (validatedData.city !== undefined) {
-      updateData.city = validatedData.city
-    }
-    if (validatedData.country !== undefined) {
-      updateData.country = validatedData.country
-    }
-    if (validatedData.groupLetter !== undefined) {
-      updateData.groupLetter = validatedData.groupLetter
-    }
-    if (validatedData.status !== undefined) {
-      updateData.status = validatedData.status
-    }
-    if (validatedData.homeScore !== undefined) {
-      updateData.homeScore = validatedData.homeScore
-    }
-    if (validatedData.awayScore !== undefined) {
-      updateData.awayScore = validatedData.awayScore
-    }
+    if (data.homeTeamId) updateData.homeTeamId = data.homeTeamId
+    if (data.awayTeamId) updateData.awayTeamId = data.awayTeamId
+    if (data.stadium) updateData.stadium = data.stadium
+    if (data.city) updateData.city = data.city
+    if (data.country) updateData.country = data.country
+    if (data.phaseId) updateData.phaseId = data.phaseId
+    if (data.groupLetter !== undefined) updateData.groupLetter = data.groupLetter
+    if (data.status) updateData.status = data.status
 
-    // Recalcular lockTime si cambia la fecha
-    if (validatedData.matchDate) {
-      const matchDate = new Date(validatedData.matchDate)
+    // Si se actualiza la fecha, recalcular lockTime
+    if (data.matchDate) {
+      const matchDate = new Date(data.matchDate)
       updateData.matchDate = matchDate
-      updateData.lockTime = calculateLockTime(matchDate)
-      updateData.isLocked = isMatchLocked(updateData.lockTime)
+      updateData.lockTime = subHours(matchDate, 1)
     }
 
-    // Actualizar partido
+    // Manejar scores
+    if (data.homeScore !== undefined) updateData.homeScore = data.homeScore
+    if (data.awayScore !== undefined) updateData.awayScore = data.awayScore
+
+    // Si se está finalizando el partido con scores, calcular puntos
+    const isFinishing = data.status === 'FINISHED' && 
+      data.homeScore !== undefined && 
+      data.awayScore !== undefined
+
     const match = await prisma.match.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         homeTeam: {
-          select: {
-            id: true,
-            name: true,
-            code: true,
-            flagUrl: true,
-          },
+          select: { id: true, name: true, code: true, flagUrl: true },
         },
         awayTeam: {
-          select: {
-            id: true,
-            name: true,
-            code: true,
-            flagUrl: true,
-          },
+          select: { id: true, name: true, code: true, flagUrl: true },
         },
         phase: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            pointsMultiplier: true,
-          },
+          select: { id: true, name: true, slug: true },
         },
         _count: {
-          select: {
-            predictions: true,
-          },
+          select: { predictions: true },
         },
       },
     })
 
-    if (
-      (validatedData.homeScore !== undefined ||
-        validatedData.awayScore !== undefined) &&
-      match.status === 'FINISHED'
-    ) {
-      console.log(
-        '🔄 Scores actualizados en partido finalizado, recalculando puntos...'
-      )
-
+    // Calcular puntos si el partido se finalizó
+    if (isFinishing) {
       try {
-        await calculatePointsForMatch(params.id)
-        console.log('✅ Puntos recalculados automáticamente')
+        await calculatePointsForMatch(id)
       } catch (error) {
-        console.error('❌ Error al recalcular puntos:', error)
-        // No fallar la actualización del partido por esto
+        console.error('Error calculating points:', error)
+        // No fallar la actualización si el cálculo de puntos falla
       }
     }
 
     return NextResponse.json({
-      message: 'Partido actualizado exitosamente',
       data: match,
+      message: isFinishing
+        ? 'Partido actualizado y puntos calculados'
+        : 'Partido actualizado',
     })
   } catch (error) {
     return handleApiError(error)
@@ -235,53 +148,61 @@ export async function PATCH(
 }
 
 /**
- * DELETE /api/admin/matches/:id
- * Elimina un partido (con sus predicciones si existen)
- * Solo accesible por administradores
- * Query param: ?confirmed=true para confirmar eliminación con predicciones
+ * DELETE /api/admin/matches/[id]
+ * Eliminar un partido (solo admin)
  */
 export async function DELETE(
-  req: NextRequest,
-  props: { params: Promise<{ id: string }> }
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdmin()
+    const { id } = await context.params
 
-    // Await params en Next.js 15
-    const params = await props.params
+    const forceDelete = request.nextUrl.searchParams.get('force') === 'true'
 
-    const searchParams = req.nextUrl.searchParams
-    const confirmed = searchParams.get('confirmed') === 'true'
+    // Verificar que el partido existe y contar predicciones
+    const match = await prisma.match.findUnique({
+      where: { id },
+      include: {
+        _count: { select: { predictions: true } },
+      },
+    })
 
-    // Validar que se pueda eliminar
-    const validationErrors = await validateMatchDeletion(params.id)
-
-    // Si hay predicciones y no está confirmado, requerir confirmación
-    if (validationErrors.length > 0 && !confirmed) {
+    if (!match) {
       return NextResponse.json(
-        {
-          error: 'Confirmación requerida',
-          details: validationErrors,
-          message:
-            'Para eliminar este partido con predicciones, agrega ?confirmed=true a la URL',
-        },
-        { status: 400 }
+        { error: 'Partido no encontrado' },
+        { status: 404 }
       )
     }
 
-    // Eliminar predicciones primero (si existen)
-    await prisma.prediction.deleteMany({
-      where: { matchId: params.id },
-    })
+    // Si hay predicciones y no es force delete, advertir
+    if (match._count.predictions > 0 && !forceDelete) {
+      return NextResponse.json(
+        {
+          error: 'Este partido tiene predicciones asociadas',
+          predictionsCount: match._count.predictions,
+          requiresForce: true,
+        },
+        { status: 409 }
+      )
+    }
+
+    // Eliminar predicciones primero si es force delete
+    if (forceDelete && match._count.predictions > 0) {
+      await prisma.prediction.deleteMany({
+        where: { matchId: id },
+      })
+    }
 
     // Eliminar el partido
-    const match = await prisma.match.delete({
-      where: { id: params.id },
+    await prisma.match.delete({
+      where: { id },
     })
 
     return NextResponse.json({
-      message: 'Partido eliminado exitosamente',
-      data: match,
+      message: 'Partido eliminado correctamente',
+      deletedPredictions: forceDelete ? match._count.predictions : 0,
     })
   } catch (error) {
     return handleApiError(error)

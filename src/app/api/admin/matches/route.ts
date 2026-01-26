@@ -1,149 +1,79 @@
-// app/api/admin/matches/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth/session'
-import { handleApiError } from '@/lib/api/error-handler'
 import { prisma } from '@/lib/db'
-import {
-  adminMatchFiltersSchema,
-  createMatchSchema,
-  validateMatchCreation,
-  calculateLockTime,
-} from '@/lib/validations/match'
-import { Prisma } from '@prisma/client'
+import { handleApiError } from '@/lib/api/error-handler'
+import { createMatchSchema, matchQuerySchema } from '@/lib/validations/match'
+import { subHours } from 'date-fns'
 
 /**
  * GET /api/admin/matches
- * Lista todos los partidos con filtros, paginación y búsqueda
- * Solo accesible por administradores
+ * Lista todos los partidos con filtros (solo admin)
  */
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    // Validar que sea admin
     await requireAdmin()
 
-    // Parse y validar query params
-    const searchParams = Object.fromEntries(req.nextUrl.searchParams)
-    const filters = adminMatchFiltersSchema.parse(searchParams)
+    const searchParams = Object.fromEntries(request.nextUrl.searchParams.entries())
+    const query = matchQuerySchema.parse(searchParams)
 
-    const {
-      page,
-      limit,
-      phase,
-      team,
-      status,
-      dateFrom,
-      dateTo,
-      search,
-      sortBy,
-      sortOrder,
-    } = filters
+    const { page, limit, phaseId, status, search, orderBy, order } = query
+    const skip = (page - 1) * limit
 
-    // Construir filtros dinámicamente
-    const where: Prisma.MatchWhereInput = {}
+    // Construir where clause
+    const where: Record<string, unknown> = {}
 
-    if (phase) {
-      where.phaseId = phase
-    }
-
-    if (team) {
-      where.OR = [{ homeTeamId: team }, { awayTeamId: team }]
+    if (phaseId) {
+      where.phaseId = phaseId
     }
 
     if (status) {
       where.status = status
     }
 
-    if (dateFrom || dateTo) {
-      where.matchDate = {}
-      if (dateFrom) {
-        where.matchDate.gte = new Date(dateFrom)
-      }
-      if (dateTo) {
-        where.matchDate.lte = new Date(dateTo)
-      }
-    }
-
-    // Búsqueda por texto (stadium, city, country, Y NOMBRES DE EQUIPOS)
     if (search) {
       where.OR = [
+        { homeTeam: { name: { contains: search, mode: 'insensitive' } } },
+        { awayTeam: { name: { contains: search, mode: 'insensitive' } } },
+        { homeTeam: { code: { contains: search, mode: 'insensitive' } } },
+        { awayTeam: { code: { contains: search, mode: 'insensitive' } } },
         { stadium: { contains: search, mode: 'insensitive' } },
-        { city: { contains: search, mode: 'insensitive' } },
-        { country: { contains: search, mode: 'insensitive' } },
-        // Búsqueda por nombre de equipo local
-        {
-          homeTeam: {
-            OR: [
-              { name: { contains: search, mode: 'insensitive' } },
-              { fullName: { contains: search, mode: 'insensitive' } },
-              { code: { contains: search, mode: 'insensitive' } },
-            ],
-          },
-        },
-        // Búsqueda por nombre de equipo visitante
-        {
-          awayTeam: {
-            OR: [
-              { name: { contains: search, mode: 'insensitive' } },
-              { fullName: { contains: search, mode: 'insensitive' } },
-              { code: { contains: search, mode: 'insensitive' } },
-            ],
-          },
-        },
       ]
     }
 
-    // Calcular paginación
-    const skip = (page - 1) * limit
+    // Construir orderBy
+    let orderByClause: Record<string, unknown> = {}
+    if (orderBy === 'date') {
+      orderByClause = { matchDate: order }
+    } else if (orderBy === 'status') {
+      orderByClause = { status: order }
+    } else if (orderBy === 'phase') {
+      orderByClause = { phase: { sortOrder: order } }
+    }
 
-    // Ejecutar queries en paralelo
+    // Ejecutar consultas
     const [matches, total] = await Promise.all([
       prisma.match.findMany({
         where,
         include: {
           homeTeam: {
-            select: {
-              id: true,
-              name: true,
-              code: true,
-              flagUrl: true,
-              groupLetter: true,
-            },
+            select: { id: true, name: true, code: true, flagUrl: true },
           },
           awayTeam: {
-            select: {
-              id: true,
-              name: true,
-              code: true,
-              flagUrl: true,
-              groupLetter: true,
-            },
+            select: { id: true, name: true, code: true, flagUrl: true },
           },
           phase: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              sortOrder: true,
-              pointsMultiplier: true,
-            },
+            select: { id: true, name: true, slug: true },
           },
           _count: {
-            select: {
-              predictions: true,
-            },
+            select: { predictions: true },
           },
         },
-        orderBy: {
-          [sortBy]: sortOrder,
-        },
+        orderBy: orderByClause,
         skip,
         take: limit,
       }),
       prisma.match.count({ where }),
     ])
-
-    // Calcular metadata de paginación
-    const totalPages = Math.ceil(total / limit)
 
     return NextResponse.json({
       data: matches,
@@ -151,9 +81,7 @@ export async function GET(req: NextRequest) {
         page,
         limit,
         total,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
+        totalPages: Math.ceil(total / limit),
       },
     })
   } catch (error) {
@@ -163,85 +91,46 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/admin/matches
- * Crea un nuevo partido
- * Solo accesible por administradores
+ * Crear un nuevo partido (solo admin)
  */
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    // Validar que sea admin
     await requireAdmin()
 
-    const body = await req.json()
+    const body = await request.json()
+    const data = createMatchSchema.parse(body)
 
-    // Validar schema
-    const validatedData = createMatchSchema.parse(body)
+    // Calcular lockTime (1 hora antes del partido)
+    const matchDate = new Date(data.matchDate)
+    const lockTime = subHours(matchDate, 1)
 
-    // Validaciones de negocio
-    const validationErrors = await validateMatchCreation(validatedData)
-    if (validationErrors.length > 0) {
-      return NextResponse.json(
-        {
-          error: 'Errores de validación',
-          details: validationErrors,
-        },
-        { status: 400 }
-      )
-    }
-
-    // Calcular lockTime automáticamente (15 min antes del partido)
-    const matchDate = new Date(validatedData.matchDate)
-    const lockTime = calculateLockTime(matchDate)
-
-    // Crear partido
     const match = await prisma.match.create({
       data: {
-        homeTeamId: validatedData.homeTeamId,
-        awayTeamId: validatedData.awayTeamId,
-        phaseId: validatedData.phaseId,
+        homeTeamId: data.homeTeamId,
+        awayTeamId: data.awayTeamId,
         matchDate,
+        stadium: data.stadium,
+        city: data.city,
+        country: data.country,
+        phaseId: data.phaseId,
+        groupLetter: data.groupLetter || null,
         lockTime,
-        stadium: validatedData.stadium,
-        city: validatedData.city,
-        country: validatedData.country,
-        groupLetter: validatedData.groupLetter,
         status: 'SCHEDULED',
-        isLocked: false,
       },
       include: {
         homeTeam: {
-          select: {
-            id: true,
-            name: true,
-            code: true,
-            flagUrl: true,
-          },
+          select: { id: true, name: true, code: true, flagUrl: true },
         },
         awayTeam: {
-          select: {
-            id: true,
-            name: true,
-            code: true,
-            flagUrl: true,
-          },
+          select: { id: true, name: true, code: true, flagUrl: true },
         },
         phase: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            pointsMultiplier: true,
-          },
+          select: { id: true, name: true, slug: true },
         },
       },
     })
 
-    return NextResponse.json(
-      {
-        message: 'Partido creado exitosamente',
-        data: match,
-      },
-      { status: 201 }
-    )
+    return NextResponse.json({ data: match }, { status: 201 })
   } catch (error) {
     return handleApiError(error)
   }
