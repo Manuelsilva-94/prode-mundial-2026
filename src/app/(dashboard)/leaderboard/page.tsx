@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Search, ArrowUpDown, User, Users } from 'lucide-react'
@@ -22,7 +23,7 @@ import { PageHeader } from '@/components/ui/page-header'
 
 type LeaderboardType = 'individual' | 'teams'
 
-export default function LeaderboardPage() {
+function LeaderboardContent() {
   const { data: session } = useSession()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -340,5 +341,43 @@ export default function LeaderboardPage() {
         onOpenChange={setTeamDetailOpen}
       />
     </div>
+  )
+}
+
+export default function LeaderboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto space-y-8 px-4 py-8">
+          <PageHeader
+            title="Tabla de Posiciones"
+            description="Ranking de participantes y equipos"
+          />
+          <div className="space-y-4">
+            <Tabs value="individual">
+              <TabsList>
+                <TabsTrigger value="individual" className="flex items-center space-x-2" disabled>
+                  <User className="h-4 w-4" />
+                  <span>Individual</span>
+                </TabsTrigger>
+                <TabsTrigger value="teams" className="flex items-center space-x-2" disabled>
+                  <Users className="h-4 w-4" />
+                  <span>Equipos</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <div className="flex items-center space-x-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input placeholder="Buscar..." className="pl-9" disabled />
+              </div>
+            </div>
+            <TableSkeleton rows={10} columns={6} />
+          </div>
+        </div>
+      }
+    >
+      <LeaderboardContent />
+    </Suspense>
   )
 }
